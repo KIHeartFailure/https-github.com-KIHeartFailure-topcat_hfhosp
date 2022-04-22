@@ -1,0 +1,56 @@
+
+```{r splinefunc, cache=cacheon}
+
+splinefunc <- function(time = NULL, event) {
+  if (!is.null(time)) {
+    mod <- coxph(formula(paste0(
+      "Surv(outtime_cvd, out_cvd == 'Yes') ~ ns(chfdc_dt3num, df = 5) + ",
+      paste(modvars, collapse = " + ")
+    )),
+    data = tcdataimphf
+    )
+  } else {
+    mod <- coxph(formula(paste0(
+      "Surv(timestart, timestop, ", event, " == 'Yes') ~ ns(chfdc_dt3num, df = 5) + ",
+      paste(modvars, collapse = " + "),
+      " + cluster(ID) + strata(eventno)"
+    )),
+    data = tcdataimprechf
+    )
+  }
+  Termplot(mod, term = 1, xlab = "Time since previous HFH (days)", ylab = "Hazard Ratio (95% CI)")
+}
+```
+
+```{r scvdrephfh, fig.cap="Spline CVD/recurrent HFH", cache=cacheon, dependson="splinefunc", fig.width=8, fig.height=7}
+splinefunc(
+  event = "out_cvdhfh"
+)
+```
+
+```{r scvd, fig.cap="Spline CVD", cache=cacheon, dependson="splinefunc", fig.width=8, fig.height=7}
+splinefunc(
+  time = "outtime_cvd",
+  event = "out_cvd"
+)
+```
+
+```{r srephfh, fig.cap="Spline recurrent HFH", cache=cacheon, dependson="splinefunc", fig.width=8, fig.height=7}
+splinefunc(
+  event = "out_hfh"
+)
+```
+
+```{r scvdhfh1, fig.cap="Spline CVD/first HFH", cache=cacheon, dependson="splinefunc", fig.width=8, fig.height=7}
+splinefunc(
+  time = "outtime_hfh",
+  event = "out_cvdhfh"
+)
+```
+  
+```{r shfh1, fig.cap="Spline first HFH", cache=cacheon, dependson="splinefunc", fig.width=8, fig.height=7}
+splinefunc(
+  time = "outtime_hfh",
+  event = "out_hfh"
+)
+```

@@ -1,0 +1,88 @@
+```{r tab1func, cache=cacheon}
+
+tab1func <- function(stratavar, titlename, fontsize = 6) {
+  tab1 <- print(CreateTableOne(
+    vars = tabvars,
+    data = tcdata,
+    strata = stratavar
+  ),
+  smd = FALSE,
+  missing = TRUE,
+  printToggle = FALSE,
+  nonnormal = tabvars,
+  catDigits = 1,
+  contDigits = 1,
+  noSpaces = TRUE,
+  explain = FALSE
+  )
+  tab1 <- as_tibble(cbind(var = rownames(tab1), tab1)) %>%
+    select(var, Missing, 2:p)
+
+
+  tab1 <- tab1 %>%
+    # remove = Yes
+    mutate(across(everything(), str_replace_all, fixed(" = Yes"), "")) %>%
+    # to get labs and units in place
+    mutate(
+      var_tmp = str_split(var, " = ", simplify = TRUE)[, 1],
+      val_tmp = str_split(var, " = ", simplify = TRUE)[, 2],
+      Variable = if_else(val_tmp != "",
+        paste0(var_tmp, " ", val_tmp),
+        var_tmp
+      )
+    )
+
+  write.xlsx(tab1 %>% select(Variable, Missing:p), paste0("./output/tabs/tab1_", titlename, Sys.Date(), ".xlsx"), rowNames = FALSE, overwrite = TRUE)
+
+  # footnotes
+  tab1 <- tab1 %>%
+    mutate(
+      footnote1 = if_else(var_tmp %in% modvars, footnote_marker_symbol(1), "")
+    ) %>%
+    unite(footnote, starts_with("footnote"), sep = "") %>%
+    mutate(
+      # so no probs
+      Variable = sanitize_text(Variable),
+      Variable = paste0(Variable, footnote),
+
+      # space in Latex output (fix this other way?)
+      Variable = sub("  ", ". ", Variable)
+    ) %>%
+    select(Variable, Missing:p) %>%
+    rename(
+      "Missing (%)" = Missing,
+      "p-value" = p
+    )
+
+  ## fix in order to use escape = TRUE
+  colnames(tab1) <- sanitize_text(colnames(tab1))
+  footnote(
+    default_kable(tab1,
+      font_size = fontsize,
+      caption = paste0("Baseline characteristics by ", titlename),
+      longtable = TRUE,
+      escape = FALSE
+    ),
+    general = c(
+      "Categorical variables are presented with n (%) and tested with chi-square test and",
+      "continuous variables with median [q1-q3] and tested with Kruskal-Wallis test."
+    )
+  )
+}
+```
+
+```{r tab11yr, cache=cacheon, dependson="tab1func"}
+tab1func("prevhfhosp1yr", "previous HFH within 1 year")
+```
+
+\clearpage
+
+```{r tab1, cache=cacheon, dependson="tab1func"}
+tab1func(stratavar = "prevhfhosp", "previous HFH")
+```
+
+\clearpage
+
+```{r tab1cat, cache=cacheon, dependson="tab1func"}
+tab1func(stratavar = "prevhfhosp_cat", "previous HFH 6 groups", fontsize = 4)
+```

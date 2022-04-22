@@ -1,0 +1,183 @@
+```{r kmfunc, cache=cacheon}
+
+kmfunc <- function(data, time, event, eventname, eventrec, hospvar, yposplus = c(0, 0)) {
+  cexmy <- 1.2
+  fits <- survfit(formula(paste0("Surv(", time, ",", event, "=='Yes') ~ ", hospvar)),
+    data = tcdata
+  ) 
+
+  # c(bottom, left, top, right)
+  par(mar = c(6.5, 8.6, 1, 8) + 0.1)
+  plots <- plot(fits,
+    fun = "event",
+    ylab = eventname,
+    yscale = 100,
+    col = global_cols[c(3, 8)],
+    mark.time = FALSE,
+    bty = "n",
+    xlim = c(0, 6),
+    ylim = c(0, 1),
+    xlab = "Years",
+    cex.lab = cexmy,
+    axes = F,
+    lwd = 4,
+    lty = c(2, 1),
+    xaxs = "i", yaxs = "i"
+  )
+
+  axis(2, seq(0, 1, 0.25), seq(0, 100, 25), las = 2, cex.axis = cexmy)
+  axis(1, at = seq(0, 6, 1), seq(0, 6, 1), cex.axis = cexmy)
+
+  ypos <- 1 - summary(fits, 6)$surv
+
+  ylabs <- bind_cols(
+    ypos = c(ypos + yposplus),
+    ytext = c("No previous HFH", "Previous HFH")
+  )
+
+  mtext(
+    side = 4,
+    line = .2,
+    at = ylabs$ypos,
+    ylabs$ytext,
+    las = 1,
+    cex = cexmy,
+  )
+
+  mtext("No. at risk", side = 1, line = 3.5, at = -1.8, adj = 0, cex = cexmy, font = 2)
+  mtext("No previous HFH", side = 1, line = 4.5, at = -1.8, adj = 0, cex = cexmy)
+  mtext("Previous HFH", side = 1, line = 5.5, at = -1.8, adj = 0, cex = cexmy)
+  
+  nrisk <- summary(fits, seq(0, 6, 1), extend = T)
+
+  axis(1, at = seq(0, 6, 1), labels = nrisk$n.risk[nrisk$strata == levels(nrisk$strata)[1]], line = 3.5, tick = FALSE, cex.axis = cexmy)
+  axis(1, at = seq(0, 6, 1), labels = nrisk$n.risk[nrisk$strata == levels(nrisk$strata)[2]], line = 4.5, tick = FALSE, cex.axis = cexmy)
+}
+```
+
+```{r mcffunc, cache=cacheon}
+mcffunc <- function(time, event, eventname, eventrec, hospvar, yposplus = c(0, 0)) {
+  cexmy <- 1.2
+  # needed for n at risk
+  fitsn <- survfit(formula(paste0("Surv(", time, ",", event, "=='Yes') ~ ", hospvar)),
+    data = tcdata
+  ) 
+
+  tcdataimprec <- tcdataimprec %>% 
+    mutate(!!sym(eventrec) := as.numeric(!!sym(eventrec))) %>%
+  # quick and uggly fix FIX THIS LATER!!!!!
+    mutate(!!sym(eventrec) := if_else(eventno == lastevent, 0, !!sym(eventrec))) %>%
+    ungroup()
+  
+  fits <- mcf(formula(paste0("Recur(outtime, ID, ", eventrec, ") ~ ", hospvar)), data = tcdataimprec)
+  
+  # c(bottom, left, top, right)
+  par(mar = c(6.5, 8.6, 1, 8) + 0.1)
+
+  plot(fits@MCF$time[fits@MCF$prevhfhosp1yr == "No"],
+    fits@MCF$MCF[fits@MCF$prevhfhosp1yr == "No"],
+    type = "l",
+    ylab = eventname,
+    col = global_cols[3],
+    xlim = c(0, 6),
+    ylim = c(0, 3),
+    xlab = "Years",
+    cex.lab = cexmy,
+    axes = F,
+    lwd = 4,
+    lty = 2,
+    xaxs = "i", yaxs = "i"
+  )
+
+  lines(fits@MCF$time[fits@MCF$prevhfhosp1yr == "Yes"],
+    fits@MCF$MCF[fits@MCF$prevhfhosp1yr == "Yes"],
+    col = global_cols[8],
+    lwd = 4,
+    lty = 1
+  )
+
+  axis(2, seq(0, 3, 1), seq(0, 300, 100), las = 2, cex.axis = cexmy)
+  axis(1, at = seq(0, 6, 1), seq(0, 6, 1), cex.axis = cexmy)
+
+  # all no, all yes, no match
+  ypos <- c(
+    last(fits@MCF$MCF[fits@MCF$time <= 365 * 3 & fits@MCF$prevhfhosp1yr == "No"]),
+    last(fits@MCF$MCF[fits@MCF$time <= 365 * 3 & fits@MCF$prevhfhosp1yr == "Yes"])
+  )
+
+  ylabs <- bind_cols(
+    ypos = c(ypos + yposplus),
+    ytext = c("No previous HFH", "Previous HFH")
+  )
+
+  mtext(
+    side = 4,
+    line = .2,
+    at = ylabs$ypos,
+    ylabs$ytext,
+    las = 1,
+    cex = cexmy,
+  )
+
+  mtext("No. at risk", side = 1, line = 3.5, at = -1.8, adj = 0, cex = cexmy, font = 2)
+  mtext("No previous HFH", side = 1, line = 4.5, at = -1.8, adj = 0, cex = cexmy)
+  mtext("Previous HFH", side = 1, line = 5.5, at = -1.8, adj = 0, cex = cexmy)
+  
+  nrisk <- summary(fitsn, seq(0, 6, 1), extend = T)
+
+  axis(1, at = seq(0, 6, 1), labels = nrisk$n.risk[nrisk$strata == levels(nrisk$strata)[1]], line = 3.5, tick = FALSE, cex.axis = cexmy)
+  axis(1, at = seq(0, 6, 1), labels = nrisk$n.risk[nrisk$strata == levels(nrisk$strata)[2]], line = 4.5, tick = FALSE, cex.axis = cexmy)
+}
+```
+
+```{r cvdrephfh, fig.cap="CVD/recurrent HFH", cache=cacheon, dependson="mcffunc", fig.width=9, fig.height=7}
+mcffunc(
+  time = "outtime_cvd",
+  event = "out_cvd",
+  eventname = "CV death/recurrent HFH",
+  eventrec = "out_cvdhfh",
+  hospvar = "prevhfhosp1yr", 
+  yposplus = c(0, 0)
+)
+```
+
+```{r cvd, fig.cap="CVD", cache=cacheon, dependson="kmfunc", fig.width=9, fig.height=7}
+kmfunc(
+  time = "outtime_cvd",
+  event = "out_cvd",
+  eventname = "CVD (%)",
+  hospvar = "prevhfhosp1yr", 
+  yposplus = c(0, 0)
+)
+```
+
+```{r rephfh, fig.cap="Recurrent HFH", cache=cacheon, dependson="mcffunc", fig.width=9, fig.height=7}
+mcffunc(
+  time = "outtime_cvd",
+  event = "out_cvd",
+  eventname = "Recurrent HFH",
+  eventrec = "out_hfh",
+  hospvar = "prevhfhosp1yr", 
+  yposplus = c(0, 0)
+)
+```
+
+```{r cvdhfh1, fig.cap="CVD/first HFH", cache=cacheon, dependson="kmfunc", fig.width=9, fig.height=7}
+kmfunc(
+  time = "outtime_hfh",
+  event = "out_cvdhfh",
+  eventname = "CVD/first HFH (%)",
+  hospvar = "prevhfhosp1yr", 
+  yposplus = c(0, 0)
+)
+```
+  
+```{r hfh1, fig.cap="First HFH", cache=cacheon, dependson="kmfunc", fig.width=9, fig.height=7}
+kmfunc(
+  time = "outtime_hfh",
+  event = "out_hfh",
+  eventname = "First HFH (%)",
+  hospvar = "prevhfhosp1yr", 
+  yposplus = c(0, 0)
+)
+```
