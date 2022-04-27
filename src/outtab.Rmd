@@ -205,7 +205,7 @@ survfunc2 <- function(hospvar2, hospvarcr2) {
   s1 <- survfunc(
     time = "outtime_cvd",
     event = "out_cvdhfhno",
-    eventname = "CVD/recurrent HFH",
+    eventname = "CVD/total HFH",
     hospvar = hospvar2,
     rep = TRUE,
     repevent = "out_cvdhfh"
@@ -213,7 +213,7 @@ survfunc2 <- function(hospvar2, hospvarcr2) {
   s12 <- survfunc(
     time = "outtime_cvd",
     event = "out_cvdsenshfhno",
-    eventname = "CVD/recurrent HFH (unknown death as Non-CVD)",
+    eventname = "CVD/total HFH (unknown death as Non-CVD)",
     hospvar = hospvar2,
     rep = TRUE,
     repevent = "out_cvdsenshfh"
@@ -229,7 +229,7 @@ survfunc2 <- function(hospvar2, hospvarcr2) {
   s3 <- survfunc(
     time = "outtime_cvd",
     event = "out_hfhno",
-    eventname = "Recurrent HFH",
+    eventname = "Total HFH",
     hospvar = hospvar2,
     rep = TRUE,
     repevent = "out_hfh"

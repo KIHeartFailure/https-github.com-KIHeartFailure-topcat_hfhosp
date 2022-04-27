@@ -57,7 +57,7 @@ splinefunc <- function(time = NULL, event) {
 }
 ```
 
-```{r scvdrephfh, fig.cap="Spline CVD/recurrent HFH", cache=cacheon, dependson="splinefunc", fig.width=8, fig.height=7}
+```{r scvdrephfh, fig.cap="Spline CVD/total HFH", cache=cacheon, dependson="splinefunc", fig.width=8, fig.height=7}
 splinefunc(
   event = "out_cvdhfh"
 )
@@ -70,7 +70,7 @@ splinefunc(
 )
 ```
 
-```{r srephfh, fig.cap="Spline recurrent HFH", cache=cacheon, dependson="splinefunc", fig.width=8, fig.height=7}
+```{r srephfh, fig.cap="Spline total HFH", cache=cacheon, dependson="splinefunc", fig.width=8, fig.height=7}
 splinefunc(
   event = "out_hfh"
 )

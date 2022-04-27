@@ -134,7 +134,7 @@ mcffunc <- function(time, event, eventname, eventrec, hospvar, yposplus = c(0, 0
 }
 ```
 
-```{r cvdrephfh, fig.cap="CVD/recurrent HFH", cache=cacheon, dependson="mcffunc", fig.width=9, fig.height=7}
+```{r cvdrephfh, fig.cap="CVD/total HFH", cache=cacheon, dependson="mcffunc", fig.width=9, fig.height=7}
 mcffunc(
   time = "outtime_cvd",
   event = "out_cvd",
@@ -155,7 +155,7 @@ kmfunc(
 )
 ```
 
-```{r rephfh, fig.cap="Recurrent HFH", cache=cacheon, dependson="mcffunc", fig.width=9, fig.height=7}
+```{r rephfh, fig.cap="Total HFH", cache=cacheon, dependson="mcffunc", fig.width=9, fig.height=7}
 mcffunc(
   time = "outtime_cvd",
   event = "out_cvd",

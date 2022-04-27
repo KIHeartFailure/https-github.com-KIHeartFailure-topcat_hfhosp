@@ -100,7 +100,7 @@ forestdata <- rbind(
 )
 ```
 
-```{r outforestsubplot, cache=cacheon, dependson="outforestsub", fig.cap="Association between previous HFH within 1 year and CVD/recurrent HFH within subgroups", fig.width=6, fig.height=8}
+```{r outforestsubplot, cache=cacheon, dependson="outforestsub", fig.cap="Association between previous HFH within 1 year and CVD/total HFH within subgroups", fig.width=6, fig.height=8}
 
 cextext <- 1.2
 
