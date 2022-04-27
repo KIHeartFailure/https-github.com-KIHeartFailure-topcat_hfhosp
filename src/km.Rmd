@@ -1,13 +1,13 @@
 ```{r kmfunc, cache=cacheon}
 
-kmfunc <- function(data, time, event, eventname, eventrec, hospvar, yposplus = c(0, 0)) {
+kmfunc <- function(data, time, event, eventname, eventrec, hospvar, yposplus = rep(0.03, 2)) {
   cexmy <- 1.2
   fits <- survfit(formula(paste0("Surv(", time, ",", event, "=='Yes') ~ ", hospvar)),
     data = tcdata
   )
 
   # c(bottom, left, top, right)
-  par(mar = c(6.5, 8.6, 1, 8) + 0.1)
+  par(mar = c(6.5, 8.85, 1, 1) + 0.1)
   plots <- plot(fits,
     fun = "event",
     ylab = eventname,
@@ -28,21 +28,16 @@ kmfunc <- function(data, time, event, eventname, eventrec, hospvar, yposplus = c
   axis(2, seq(0, 1, 0.25), seq(0, 100, 25), las = 2, cex.axis = cexmy)
   axis(1, at = seq(0, 6, 1), seq(0, 6, 1), cex.axis = cexmy)
 
-  ypos <- 1 - summary(fits, 6, extend = T)$surv
+  ypos <- 1 - summary(fits, 4, extend = T)$surv
 
   ylabs <- bind_cols(
-    ypos = c(ypos + yposplus),
+    ypos = ypos,
     ytext = c("No previous HFH", "Previous HFH")
-  )
+  ) %>%
+    arrange(ypos)
 
-  mtext(
-    side = 4,
-    line = .2,
-    at = ylabs$ypos,
-    ylabs$ytext,
-    las = 1,
-    cex = cexmy,
-  )
+  text(ylabs$ypos[1] - yposplus[1], x = 4, ylabs$ytext[1], pos = 4, cex = cexmy)
+  text(ylabs$ypos[2] + yposplus[2], x = 4, ylabs$ytext[2], pos = 2, cex = cexmy)
 
   mtext("No. at risk", side = 1, line = 3.5, at = -1.8, adj = 0, cex = cexmy, font = 2)
   mtext("No previous HFH", side = 1, line = 4.5, at = -1.8, adj = 0, cex = cexmy)
@@ -56,16 +51,16 @@ kmfunc <- function(data, time, event, eventname, eventrec, hospvar, yposplus = c
 ```
 
 ```{r mcffunc, cache=cacheon}
-mcffunc <- function(time, event, eventname, eventrec, hospvar, yposplus = c(0, 0)) {
+mcffunc <- function(eventname, event, hospvar, yposplus = rep(0.05, 2)) {
   cexmy <- 1.2
   # needed for n at risk
-  fitsn <- survfit(formula(paste0("Surv(", time, ",", event, "=='Yes') ~ ", hospvar)),
+  fitsn <- survfit(formula(paste0("Surv(outtime_cvd, out_cvd =='Yes') ~ ", hospvar)),
     data = tcdata
   )
 
   tmptcdataimprec <- tcdataimprec %>%
-    filter(!!sym(eventrec) == "Yes", eventno == lastevent) %>%
-    mutate(!!sym(eventrec) := "No",
+    filter(!!sym(event) == "Yes", eventno == lastevent) %>%
+    mutate(!!sym(event) := "No",
       timestart = timestop,
       timestop = timestop
     )
@@ -73,10 +68,10 @@ mcffunc <- function(time, event, eventname, eventrec, hospvar, yposplus = c(0, 0
   tmptcdataimprec <- bind_rows(tcdataimprec, tmptcdataimprec) %>%
     arrange(ID, timestart, timestop)
 
-  fits <- mcf(formula(paste0("Recur(outtime, ID, ", eventrec, " == 'Yes') ~ ", hospvar)), data = tmptcdataimprec)
+  fits <- mcf(formula(paste0("Recur(outtime, ID, ", event, " == 'Yes') ~ ", hospvar)), data = tmptcdataimprec)
 
   # c(bottom, left, top, right)
-  par(mar = c(6.5, 8.6, 1, 8) + 0.1)
+  par(mar = c(6.5, 8.85, 1, 1) + 0.1)
 
   plot(fits@MCF$time[fits@MCF$prevhfhosp1yr == "No"],
     fits@MCF$MCF[fits@MCF$prevhfhosp1yr == "No"],
@@ -103,25 +98,19 @@ mcffunc <- function(time, event, eventname, eventrec, hospvar, yposplus = c(0, 0
   axis(2, seq(0, 2, 0.5), seq(0, 200, 50), las = 2, cex.axis = cexmy)
   axis(1, at = seq(0, 6, 1), seq(0, 6, 1), cex.axis = cexmy)
 
-  # all no, all yes, no match
   ypos <- c(
-    last(fits@MCF$MCF[fits@MCF$time <= 6 & fits@MCF$prevhfhosp1yr == "No"]),
-    last(fits@MCF$MCF[fits@MCF$time <= 6 & fits@MCF$prevhfhosp1yr == "Yes"])
+    last(fits@MCF$MCF[fits@MCF$time <= 4 & fits@MCF$prevhfhosp1yr == "No"]),
+    last(fits@MCF$MCF[fits@MCF$time <= 4 & fits@MCF$prevhfhosp1yr == "Yes"])
   )
 
   ylabs <- bind_cols(
-    ypos = c(ypos + yposplus),
+    ypos = ypos,
     ytext = c("No previous HFH", "Previous HFH")
-  )
+  ) %>%
+    arrange(ypos)
 
-  mtext(
-    side = 4,
-    line = .2,
-    at = ylabs$ypos,
-    ylabs$ytext,
-    las = 1,
-    cex = cexmy,
-  )
+  text(ylabs$ypos[1] - yposplus[1], x = 4, ylabs$ytext[1], pos = 4, cex = cexmy)
+  text(ylabs$ypos[2] + yposplus[2], x = 4, ylabs$ytext[2], pos = 2, cex = cexmy)
 
   mtext("No. at risk", side = 1, line = 3.5, at = -1.8, adj = 0, cex = cexmy, font = 2)
   mtext("No previous HFH", side = 1, line = 4.5, at = -1.8, adj = 0, cex = cexmy)
@@ -134,54 +123,45 @@ mcffunc <- function(time, event, eventname, eventrec, hospvar, yposplus = c(0, 0
 }
 ```
 
-```{r cvdrephfh, fig.cap="CVD/total HFH", cache=cacheon, dependson="mcffunc", fig.width=9, fig.height=7}
+```{r cvdrephfh, fig.cap="CVD/total HFH", cache=cacheon, dependson="mcffunc", fig.width=8, fig.height=7}
 mcffunc(
-  time = "outtime_cvd",
-  event = "out_cvd",
   eventname = "CVD/total HFH",
-  eventrec = "out_cvdhfh",
-  hospvar = "prevhfhosp1yr",
-  yposplus = c(0, 0)
+  event = "out_cvdhfh",
+  hospvar = "prevhfhosp1yr"
 )
 ```
 
-```{r cvd, fig.cap="CVD", cache=cacheon, dependson="kmfunc", fig.width=9, fig.height=7}
+```{r cvd, fig.cap="CVD", cache=cacheon, dependson="kmfunc", fig.width=8, fig.height=7}
 kmfunc(
   time = "outtime_cvd",
   event = "out_cvd",
   eventname = "CVD (%)",
-  hospvar = "prevhfhosp1yr",
-  yposplus = c(0, 0)
+  hospvar = "prevhfhosp1yr"
 )
 ```
 
-```{r rephfh, fig.cap="Total HFH", cache=cacheon, dependson="mcffunc", fig.width=9, fig.height=7}
+```{r rephfh, fig.cap="Total HFH", cache=cacheon, dependson="mcffunc", fig.width=8, fig.height=7}
 mcffunc(
-  time = "outtime_cvd",
-  event = "out_cvd",
   eventname = "total HFH",
-  eventrec = "out_hfh",
-  hospvar = "prevhfhosp1yr",
-  yposplus = c(0, 0)
+  event = "out_hfh",
+  hospvar = "prevhfhosp1yr"
 )
 ```
 
-```{r cvdhfh1, fig.cap="CVD/first HFH", cache=cacheon, dependson="kmfunc", fig.width=9, fig.height=7}
+```{r cvdhfh1, fig.cap="CVD/first HFH", cache=cacheon, dependson="kmfunc", fig.width=8, fig.height=7}
 kmfunc(
   time = "outtime_hfh",
   event = "out_cvdhfh",
   eventname = "CVD/first HFH (%)",
-  hospvar = "prevhfhosp1yr",
-  yposplus = c(0, 0)
+  hospvar = "prevhfhosp1yr"
 )
 ```
   
-```{r hfh1, fig.cap="First HFH", cache=cacheon, dependson="kmfunc", fig.width=9, fig.height=7}
+```{r hfh1, fig.cap="First HFH", cache=cacheon, dependson="kmfunc", fig.width=8, fig.height=7}
 kmfunc(
   time = "outtime_hfh",
   event = "out_hfh",
   eventname = "First HFH (%)",
-  hospvar = "prevhfhosp1yr",
-  yposplus = c(0, 0)
+  hospvar = "prevhfhosp1yr"
 )
 ```
