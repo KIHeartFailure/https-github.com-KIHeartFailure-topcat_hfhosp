@@ -1,0 +1,197 @@
+```{r outforestsub, cache=cacheon}
+survmysub <- function(xvar, noxvar = NULL, xvarname) {
+  levs <- levels(tcdataimp %>% pull(!!sym(xvar)))
+
+  if (is.null(noxvar)) noxvar <- xvar
+
+  modvarscoxtmp <- modvarscox[modvarscox != noxvar]
+  out <- data.frame(matrix(NA, ncol = 6, nrow = length(levs) + 1))
+  colnames(out) <- c("Subgroup", "HR (95% CI)", "p", "coef", "lci", "uci")
+
+  out[1, 1] <- xvarname
+
+  for (i in seq_along(levs)) {
+    out[1 + i, 1] <- paste0("  ", levs[i])
+
+    mod <- coxph(formula(paste0(
+      "Surv(timestart, timestop, out_cvdhfh == 'Yes') ~ prevhfhosp1yr * relevel(", xvar, ", ref = '", levs[i], "') + ",
+      paste(modvarscoxtmp, collapse = " + "),
+      " + cluster(ID) + strata(eventno)"
+    )),
+    data = tcdataimprec
+    )
+    smod <- summary(mod)
+
+    out[1 + i, 2] <- paste0(
+      fn(smod$conf.int[1, "exp(coef)"], dig = 2),
+      " (", fn(smod$conf.int[1, "lower .95"], dig = 2),
+      "-", fn(smod$conf.int[1, "upper .95"], dig = 2), ")"
+    )
+
+    out[1 + i, 4] <- log(smod$conf.int[1, "exp(coef)"])
+    out[1 + i, 5] <- log(smod$conf.int[1, "lower .95"])
+    out[1 + i, 6] <- log(smod$conf.int[1, "upper .95"])
+
+    if (i == 1) {
+      if (length(levs) == 2) {
+        out[1, 3] <- fn(last(smod$coefficients[, "Pr(>|z|)"]), dig = 3, p = TRUE)
+      } else {
+        p <- aod::wald.test(Sigma = vcov(mod), b = coef(mod), Terms = (length(mod$coefficients) - (length(levs) - 2)):length(mod$coefficients))
+
+        out[1, 3] <- fn(p$result$chi2["P"], dig = 3, p = TRUE)
+      }
+    }
+  }
+  return(out)
+}
+
+forestdata <- survmysub(
+  xvar = "GENDER",
+  xvarname = "Gender"
+)
+
+forestdata <- rbind(
+  forestdata,
+  survmysub(
+    xvar = "age_entry_cat",
+    noxvar = "age_entry",
+    xvarname = "Age (years)"
+  )
+)
+
+forestdata <- rbind(
+  forestdata,
+  survmysub(
+    xvar = "nyha_class_cat",
+    xvarname = "NYHA class"
+  )
+)
+
+forestdata <- rbind(
+  forestdata,
+  survmysub(
+    xvar = "EF_cat",
+    xvarname = "EF (%)"
+  )
+)
+
+forestdata <- rbind(
+  forestdata,
+  survmysub(
+    xvar = "ntprobnp_bnp_cat",
+    xvarname = "NT-proBNP/BNP"
+  )
+)
+
+forestdata <- rbind(
+  forestdata,
+  survmysub(
+    xvar = "DM",
+    xvarname = "Diabetes"
+  )
+)
+
+forestdata <- rbind(
+  forestdata,
+  survmysub(
+    xvar = "spironolactone",
+    xvarname = "Spironolactone"
+  )
+)
+```
+
+```{r outforestsubplot, cache=cacheon, dependson="outforestsub", fig.cap="Association between previous HFH within 1 year and CVD/recurrent HFH within subgroups", fig.width=6, fig.height=8}
+
+cextext <- 1.2
+
+minmy <- 0.5
+maxmy <- ceiling(exp(max(forestdata$uci, na.rm = T)) * 10) / 10
+
+# c(bottom, left, top, right)
+par(mar = c(4, 18, 1, 2) + 0.2)
+
+
+plot(rev(forestdata$coef), 1:nrow(forestdata),
+  cex = 2,
+  xlim = c(
+    log(minmy),
+    log(maxmy)
+  ),
+  xlab = "",
+  cex.lab = cextext,
+  ylim = c(1, nrow(forestdata) + .4),
+  axes = FALSE,
+  ylab = NA,
+  main = NA,
+  type = "p",
+  pch = 22,
+  bg = global_cols[3],
+  col = global_cols[3],
+  xaxs = "i"
+)
+
+for (i in 1:nrow(forestdata)) {
+  if (!is.na(rev(forestdata$lci)[i])) {
+    matplot(c(rev(forestdata$lci)[i], rev(forestdata$uci)[i]), c(i, i),
+      type = "l", add = TRUE, col = global_cols[3], cex = 1, lwd = 2
+    )
+    # if lci < 1
+    if (rev(forestdata$lci)[i] < log(minmy)) {
+      arrows(0.01, i, 0, i, col = global_cols[3], code = 2, length = 0.15, lwd = 2)
+    }
+  }
+}
+
+matplot(c(log(1), log(1)), c(-1, nrow(forestdata)), type = "l", lwd = 1, lty = 3, add = TRUE, col = 1)
+
+axismy <- seq(minmy, maxmy, 0.1)
+axismy2 <- axismy
+axismy2[!axismy %in% c(minmy, maxmy)] <- NA
+
+axis(1,
+  cex.axis = cextext, at = log(axismy),
+  labels = axismy2
+)
+axis(1,
+  cex.axis = cextext, at = log(1),
+  labels = 1
+)
+
+axis(2,
+  at = nrow(forestdata) + 1,
+  labels = "Subgroup",
+  cex.axis = cextext, tick = FALSE, las = 2, line = 17, hadj = 0, font = 2
+)
+axis(2,
+  at = 1:nrow(forestdata),
+  labels = c(rev(forestdata$Subgroup)),
+  cex.axis = cextext, tick = FALSE, las = 2, line = 17, hadj = 0
+)
+
+axis(2,
+  at = nrow(forestdata) + 1,
+  labels = "HR (95% CI)",
+  cex.axis = cextext, tick = FALSE, las = 2, line = 7, hadj = 0.5, font = 2
+)
+axis(2,
+  at = 1:nrow(forestdata),
+  labels = rev(forestdata$`HR (95% CI)`),
+  cex.axis = cextext, tick = FALSE, las = 2, line = 7, hadj = 0.5
+)
+
+axis(2,
+  at = nrow(forestdata) + 1,
+  labels = "P interaction",
+  cex.axis = cextext, tick = FALSE, las = 1, line = 1, hadj = 0.5, font = 2
+)
+axis(2,
+  at = 1:nrow(forestdata),
+  labels = rev(forestdata$p),
+  cex.axis = cextext, tick = FALSE, las = 1, line = 1, hadj = 0.5
+)
+
+axis(1,
+  at = (log(maxmy) + log(minmy)) / 2, cex.axis = cextext,
+  labels = "HR (95% CI)", line = 1, tick = FALSE
+)
+```

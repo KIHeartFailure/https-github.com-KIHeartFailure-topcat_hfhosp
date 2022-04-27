@@ -1,9 +1,19 @@
 ```{r outtabfunc, cache=cacheon}
-survfunc <- function(time, event, eventcr = NULL, eventname, hospvar, rep = FALSE, repevent = NULL) {
+
+modvarscoxbnp <- modvarscox[modvarscox != "ntprobnp_bnp_cat"]
+
+modvarscr <- names(tcdataimp)[str_detect(names(tcdataimp), "_cr_")]
+modvarscr <- modvarscr[str_detect(modvarscr, "prevhfhosp", negate = T)]
+modvarscrkont <- tcdataimp %>%
+  select(!!!syms(modvars)) %>%
+  select(where(is.numeric))
+modvarscr <- c(modvarscr, names(modvarscrkont))
+
+survfunc <- function(time, event, eventcr = NULL, hospvarcr = NULL, eventname, hospvar, rep = FALSE, repevent = NULL) {
   levsh <- levels(tcdata %>% pull(!!sym(hospvar)))
   nlevsh <- length(levsh)
 
-  out <- data.frame(matrix(NA, ncol = nlevsh + 2, nrow = 4))
+  out <- data.frame(matrix(NA, ncol = nlevsh + 2, nrow = 5))
 
   out[1, 1] <- eventname
   colnames(out) <- c("Outcome", "Model", levsh)
@@ -65,7 +75,7 @@ survfunc <- function(time, event, eventcr = NULL, eventname, hospvar, rep = FALS
 
     mod <- summary(coxph(formula(paste0(
       "Surv(", time, ",", event, "=='Yes') ~ ", hospvar, " + ",
-      paste(modvars, collapse = " + ")
+      paste(modvarscox, collapse = " + ")
     )),
     data = tcdataimp
     ))
@@ -77,37 +87,51 @@ survfunc <- function(time, event, eventcr = NULL, eventname, hospvar, rep = FALS
       fn(mod$coef[1:(nlevsh - 1), 5], dig = 3, p = TRUE)
     ))
 
-    #
-    # mod <- summary(z <- crr(
-    #    tcdataimp %>% pull(!!sym(time)),
-    #     tcdataimp %>% pull(!!sym(eventcr)),
-    #     tcdataimp %>% pull(!!sym(hospvar)),
-    #     failcode = 1, cencode = 0
-    #   ))
-    #
-    #   # P-value
-    #   p <- dF(mod$coef[, 5], dig = 3, p = TRUE)
-    #
-    #   out[tmpnrow, 2] <- "Adj HR (95% CI), p-value"
-    #
-    #   out[tmpnrow, 3:4] <- c("ref", paste0(
-    #     dF(mod$conf.int[, 1], dig = 2),
-    #     " (", dF(mod$conf.int[, 3], dig = 2),
-    #     "-", dF(mod$conf.int[, 4], dig = 2), ") ",
-    #     p
-    #   ))
-    out[4, 2] <- "Adjusted, death as competing event, HR (95% CI), p-value"
+    ## adjusted covs excluding ntprobnp/bnp
 
-    out[4, 3:(nlevsh + 2)] <- c("ref", "MUST FIXA")
+    out[4, 2] <- "Adjusted (excl NT-proBNP/BNP) HR (95% CI), p-value"
+
+    mod <- summary(coxph(formula(paste0(
+      "Surv(", time, ",", event, "=='Yes') ~ ", hospvar, " + ",
+      paste(modvarscoxbnp, collapse = " + ")
+    )),
+    data = tcdataimp
+    ))
+
+    out[4, 3:(nlevsh + 2)] <- c("ref", paste0(
+      fn(mod$conf.int[1:(nlevsh - 1), 1], dig = 2),
+      " (", fn(mod$conf.int[1:(nlevsh - 1), 3], dig = 2),
+      "-", fn(mod$conf.int[1:(nlevsh - 1), 4], dig = 2), "), ",
+      fn(mod$coef[1:(nlevsh - 1), 5], dig = 3, p = TRUE)
+    ))
+
+    # Sens analyses F&G
+
+    out[5, 2] <- "Adjusted, F&G, HR (95% CI), p-value"
+
+    mod <- summary(crr(
+      tcdataimp %>% pull(!!sym(time)),
+      tcdataimp %>% pull(!!sym(eventcr)),
+      tcdataimp %>% select(!!!syms(c(hospvarcr, modvarscr))),
+      failcode = 1, cencode = 0
+    ))
+
+    out[5, 3:(nlevsh + 2)] <- c("ref", paste0(
+      fn(mod$conf.int[1:(nlevsh - 1), "exp(coef)"], dig = 2),
+      " (", fn(mod$conf.int[1:(nlevsh - 1), "2.5%"], dig = 2),
+      "-", fn(mod$conf.int[1:(nlevsh - 1), "97.5%"], dig = 2), ") ",
+      fn(mod$coef[1:(nlevsh - 1), "p-value"], dig = 3, p = TRUE)
+    ))
   }
+
   if (rep) {
     # PWP
     ## crude
+    out[2, 2] <- "Crude, PWP, HR (95% CI), p-value"
+
     mod <- summary(coxph(formula(paste0("Surv(timestart, timestop, ", repevent, " == 'Yes') ~ ", hospvar, " + cluster(ID) + strata(eventno)")),
       data = tcdataimprec
     ))
-
-    out[2, 2] <- "Crude, PWP, HR (95% CI), p-value"
 
     out[2, 3:(nlevsh + 2)] <- c("ref", paste0(
       fn(mod$conf.int[1:(nlevsh - 1), 1], dig = 2),
@@ -118,18 +142,37 @@ survfunc <- function(time, event, eventcr = NULL, eventname, hospvar, rep = FALS
 
 
     ## adjusted individual covariates
+    out[3, 2] <- "Adjusted, PWP, HR (95% CI), p-value"
+
     mod <- summary(coxph(formula(paste0(
       "Surv(timestart, timestop, ", repevent, " == 'Yes') ~ ",
       hospvar, " + ",
-      paste(modvars, collapse = " + "),
+      paste(modvarscox, collapse = " + "),
       " + cluster(ID) + strata(eventno)"
     )),
     data = tcdataimprec
     ))
 
-    out[3, 2] <- "Adjusted, PWP, HR (95% CI), p-value"
-
     out[3, 3:(nlevsh + 2)] <- c("ref", paste0(
+      fn(mod$conf.int[1:(nlevsh - 1), 1], dig = 2),
+      " (", fn(mod$conf.int[1:(nlevsh - 1), 3], dig = 2),
+      "-", fn(mod$conf.int[1:(nlevsh - 1), 4], dig = 2), "), ",
+      fn(mod$coef[1:(nlevsh - 1), "Pr(>|z|)"], dig = 3, p = TRUE)
+    ))
+
+    ## adjusted individual covariates
+    out[4, 2] <- "Adjusted (excl NT-proBNP/BNP), PWP, HR (95% CI), p-value"
+
+    mod <- summary(coxph(formula(paste0(
+      "Surv(timestart, timestop, ", repevent, " == 'Yes') ~ ",
+      hospvar, " + ",
+      paste(modvarscoxbnp, collapse = " + "),
+      " + cluster(ID) + strata(eventno)"
+    )),
+    data = tcdataimprec
+    ))
+
+    out[4, 3:(nlevsh + 2)] <- c("ref", paste0(
       fn(mod$conf.int[1:(nlevsh - 1), 1], dig = 2),
       " (", fn(mod$conf.int[1:(nlevsh - 1), 3], dig = 2),
       "-", fn(mod$conf.int[1:(nlevsh - 1), 4], dig = 2), "), ",
@@ -141,14 +184,14 @@ survfunc <- function(time, event, eventcr = NULL, eventname, hospvar, rep = FALS
     ## adjusted individual covariates
     mod <- glm.nb(formula(paste0(
       event, " ~ ", hospvar, " + ",
-      paste(modvars, collapse = " + "), " + offset(log(", time, "))"
+      paste(modvarscox, collapse = " + "), " + offset(log(", time, "))"
     )),
     data = tcdataimp
     )
 
     smod <- summary(mod)
-    out[4, 2] <- "Adjusted, NBR, IRR (95% CI), p-value"
-    out[4, 3:(nlevsh + 2)] <- c("ref", paste0(
+    out[5, 2] <- "Adjusted, NBR, IRR (95% CI), p-value"
+    out[5, 3:(nlevsh + 2)] <- c("ref", paste0(
       fn(exp(smod$coefficients[2:(nlevsh), 1]), dig = 2),
       " (", fn(exp(smod$coefficients[2:(nlevsh), 1] - global_z05 * smod$coefficients[2:(nlevsh), 2]), dig = 2),
       "-", fn(exp(smod$coefficients[2:(nlevsh), 1] + global_z05 * smod$coefficients[2:(nlevsh), 2]), dig = 2), "), ",
@@ -158,7 +201,7 @@ survfunc <- function(time, event, eventcr = NULL, eventname, hospvar, rep = FALS
   return(out)
 }
 
-survfunc2 <- function(hospvar2) {
+survfunc2 <- function(hospvar2, hospvarcr2) {
   s1 <- survfunc(
     time = "outtime_cvd",
     event = "out_cvdhfhno",
@@ -180,14 +223,8 @@ survfunc2 <- function(hospvar2) {
     event = "out_cvd",
     eventcr = "out_cvd_cr",
     eventname = "CVD",
-    hospvar = hospvar2
-  )
-  s22 <- survfunc(
-    time = "outtime_cvd",
-    event = "out_cvdsens",
-    eventcr = "out_cvdsens_cr",
-    eventname = "CVD (unknown death as Non-CVD)",
-    hospvar = hospvar2
+    hospvar = hospvar2,
+    hospvarcr = hospvarcr2
   )
   s3 <- survfunc(
     time = "outtime_cvd",
@@ -202,25 +239,20 @@ survfunc2 <- function(hospvar2) {
     event = "out_cvdhfh",
     eventcr = "out_cvdhfh_cr",
     eventname = "CVD/first HFH",
-    hospvar = hospvar2
-  )
-  s42 <- survfunc(
-    time = "outtime_hfh",
-    event = "out_cvdsenshfh",
-    eventcr = "out_cvdsenshfh_cr",
-    eventname = "CVD/first HFH (unknown death as Non-CVD)",
-    hospvar = hospvar2
+    hospvar = hospvar2,
+    hospvarcr = hospvarcr2
   )
   s5 <- survfunc(
     time = "outtime_hfh",
     event = "out_hfh",
     eventcr = "out_hfh_cr",
     eventname = "First HFH",
-    hospvar = hospvar2
+    hospvar = hospvar2,
+    hospvarcr = hospvarcr2
   )
 
   outall <- rbind(
-    s1, s12, s2, s22, s3, s4, s42, s5
+    s1, s12, s2, s3, s4, s5
   ) # %>%
   # mutate(across(c(Outcome, Model), sanitize_text))
 
@@ -230,7 +262,7 @@ survfunc2 <- function(hospvar2) {
 
 ```{r outtab1yr, cache=cacheon, dependson="outtabfunc"}
 
-out <- survfunc2(hospvar2 = "prevhfhosp1yr")
+out <- survfunc2(hospvar2 = "prevhfhosp1yr", hospvarcr2 = "prevhfhosp1yr_cr_Yes")
 
 write.xlsx(out, paste0("./output/tabs/out_1yr_", Sys.Date(), ".xlsx"), rowNames = FALSE, overwrite = TRUE)
 
@@ -242,7 +274,7 @@ default_kable(out,
 
 ```{r outtab, cache=cacheon, dependson="outtabfunc"}
 
-out <- survfunc2(hospvar2 = "prevhfhosp")
+out <- survfunc2(hospvar2 = "prevhfhosp", hospvarcr2 = "prevhfhosp_cr_Yes")
 
 write.xlsx(out, paste0("./output/tabs/out_", Sys.Date(), ".xlsx"), rowNames = FALSE, overwrite = TRUE)
 
@@ -253,7 +285,14 @@ default_kable(out,
 ```
 
 ```{r outtabcat, cache=cacheon, dependson="outtabfunc"}
-out <- survfunc2(hospvar2 = "prevhfhosp_cat")
+out <- survfunc2(
+  hospvar2 = "prevhfhosp_cat",
+  hospvarcr2 = c(
+    "prevhfhosp_cat_cr_HFHunder30d", "prevhfhosp_cat_cr_HFH30m90d",
+    "prevhfhosp_cat_cr_HFH90dm6mo", "prevhfhosp_cat_cr_HFH6mom1yr",
+    "prevhfhosp_cat_cr_HFHover1yr"
+  )
+)
 
 write.xlsx(out, paste0("./output/tabs/out_6cat_", Sys.Date(), ".xlsx"), rowNames = FALSE, overwrite = TRUE)
 

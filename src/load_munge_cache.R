@@ -16,6 +16,7 @@ ProjectTemplate::cache("flow")
 
 ProjectTemplate::cache("tabvars")
 ProjectTemplate::cache("modvars")
+ProjectTemplate::cache("modvarscox")
 
 ProjectTemplate::cache("tcdata")
 ProjectTemplate::cache("tcdataimp")

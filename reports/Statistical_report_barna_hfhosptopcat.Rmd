@@ -58,8 +58,12 @@ TOPCAT
 ## Inclusion/exclusion criteria
 
 ```{r flow}
-default_kable(flow, caption = "Flowchart")
+default_kable(flow, caption = "Flowchart", scale_down = F)
 ```
+
+## Fixes
+
+Values < 0 in the continuous variables used in the models are replaced by missing (BARNA: Inte bara HB). 
 
 ## Frågor/Kommentarer
 
@@ -67,26 +71,15 @@ Kodade ihop tertilerna av NT-proBNP och BNP till en variabel som Lars föreslog 
 
 Prev HF admission inkluderar även om de är randomiserade in hosp. Behöver detta dock vara just HF hosp? Skriva i limitaitons?
 
-32 personer i TOPCAT americas uppfyllde inte inklusions och exklusions kriterierna. I ditt datahanteringsdokument Barna står att dessa är exkluderade tror inte du gjorde det till slut ändå (då stämmer inte antalen). Vanligtvis (så länge de är randomiserade) så inkluderas dessa i ITT/FAS population (primär population) så antar att dessa ska inkluderas i denna studie. Dessa är också med i TOPCAT pek. OK?
-
-Jag exkluderade även 2 personer med saknad CHF_HOSP jmf med dig Barna. OK? 
-
-Jag använde MEDCAT_WHODDE istället för att koda ihop medicinerna. Förutom COMBO gjorde jag inga omkodningar. Det diffar därför lite mellan våra meds siffror. 
-
 Fler variabler for justering i modeller?
 
-För utfallen tog jag med de fall som skett efter study end date (till skillnad från dig Barna). Det är så de verkar ha gjort i TOPCAT (dataset Outcomes) så föreslår gör likadant. 
-
-I TOPCAT verkar de ha kodat Unknown död som EJ cvd. Drog till med sens analys där kodade Unknown som ej cvd, 
-men kan lyfta bort om blir för mycket info. 
-
-Du skriver att du använt T027 för hfh. Tror ska använda T070? Det är det de verkar ha gjort i TOPCAT. Som jag uppfattar det är T027 hosp rapporterade, och T070 är adjudicerade. Eller missförstår jag något? Sen förstår jag inte riktigt hur det gjort i TOPCAT (de har i vissa fall tagit en senare event istället för första (om outcome nummret är lägre), och för cvd har de i första hand använd cea datumet, för hfh i första hand site datumet. Jag gör likadant som de, men misstänker att de nog gjort det aningens småknasigt. 
+I TOPCAT verkar de ha kodat Unknown död som EJ cvd. Drog till med sens analys där kodade Unknown som ej cvd (dock bara för primärt utfall, kan göra även för andra), men kan lyfta bort om blir för mycket info. 
 
 Det finns inte discharge date i adj events filen. Och det går inte att matcha ihop med t027 (sitens rapporterade events) för datumen diffar. Därför får time at risk vara även när pat är inneliggande för hosp. 
 
-HUVUDFRÅGA: Har 3 previous HDH variabler och 5 utfall. Det blir många olika kombos. 
+Har 3 previous HDH variabler och 5 utfall. Det blir många olika kombos. 
 Går eliminera någon? Bör välja primär HFH och utfall. Har valt previous HFH inom 1 år som primär variabel (eftersom spline analyserna är på denna). 
-vet dock inte vad som är nytt och om riskerar att inte se det nya för alla andra siffror. 
+vet dock inte vad som är nytt och om riskerar att inte se det nya för alla andra siffror. Kan kanske också nöja sig med att presentera sens analyser (unknown death as non-cvd, exkludera ntprobnp/bnp för justering mm ENBART för primary outcome). Ska CVD/rec HFH vara primärt utfall (fördel: brukar vara det i trials nackdel: effekten av prev HFH borde vara främst på HFH, så man vill väll egentligen helst se de sep utfallen cvd och hfh var för sig?).  
 
 # Statistical analysis 
 
@@ -99,8 +92,8 @@ comparisons were made and therefore the results should be viewed with some care.
 ## Missing data
 
 Missing data was imputed with median for continuous variables and mode for categorical variables. 
-For the combined ntprobnp/bnp tertile variable missing values were imputed with Tertile 2. 
-A sensitivity analyses was also performed excluding the NT-proBNP/BNP variable HAR INTE GJORT DETTA ÄR SÅ MÅNGA ANALYSER SOM DET ÄR SÅ FÖRESLÅR SKIPPA. 
+For the combined ntprobnp/bnp tertile variable missing values were coded as a separate category. 
+A sensitivity analyses was also performed excluding the NT-proBNP/BNP variable.
 
 ## Previous HFH
 
@@ -138,6 +131,9 @@ Cox proportional hazards regressions were
 used to model the time to first event, partly crude including only previous HFH in the model 
 and partly adjusted for variables indicated in 
 Table \ref{tab:tab11yr}. The variables were selected based on clinical relevance. 
+The continuous variables were included using natural cubic splines with 5 degrees of freedom. 
+Due to violations to the proportional hazards assumption loop diuretics was stratified for in the models.  
+
 As a consistency analysis the time to first events were modelled using a sub-distributional hazards model [@fg] 
 where death was treated as a competing event. 
 
@@ -167,12 +163,10 @@ The median (min-max) follow-up is
 
 ```
 
-### Visualization of association between previous HFH and outcomes
+### Visualization of association between previous HFH within 1 year and outcomes
 
 Previous HFH on a continuous scale was visually presented using natural cubic splines with 5 degrees of freedom. 
 The model only included patients with a previous HFH within 1 year from randomization. 
-
-INTE SNYGGA GRAFER, SKA FÖRSÖKA FIXA TILL. 
 
 ```{r, child = "./src/splines.Rmd"}
 
@@ -183,15 +177,19 @@ INTE SNYGGA GRAFER, SKA FÖRSÖKA FIXA TILL.
 ### Assumptions
 
 The proportional hazards assumption was investigated using the scaled Schoenfeld 
-residuals (cox.zph in [@survival-package]) for the primary outcome. 
-Possible outliers were visually inspected by plotting the dfbetas. 
-=> XXXX. Linearity..... CHECK THIS LATER. 
+residuals (cox.zph in [@survival-package]) for the primary outcome. Loop diuretics was as a results including as a strata variable.  
+Possible outliers were visually inspected by plotting the dfbetas. No action deemed necessary. 
+Since age, map and bmi showed signs of non-linear associations with the outcome all all variables were including using natural cubic splines. 
 
 ### Subgroups
 
-Performed using an interaction term between previous HFH and the respective variables. 
+Performed using an interaction term between previous HFH and the selected respective variables. 
 
 WHICH SUBGROUPS???? AND FOR WHAT OUTCOME/previous HFH variable?
+
+```{r, child = "./src/outforestsub.Rmd"}
+
+```
 
 \clearpage
 \newpage

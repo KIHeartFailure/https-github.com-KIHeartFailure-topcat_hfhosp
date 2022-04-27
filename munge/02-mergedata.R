@@ -9,7 +9,7 @@ t005 <- t005 %>%
   select(
     ID, CHF_HOSP, chfdc_dt3, MI, STROKE, CABG, PCI, ANGINA, COPD, ASTHMA, HTN, ICD,
     PACEMAKER, AFIB, DM
-  ) 
+  )
 
 t006 <- t006 %>% select(ID, nyha_class_cat, height, weight, HR, SBP, DBP)
 
@@ -27,7 +27,7 @@ t031 <- t031 %>% select(ID, dod1)
 
 t079 <- t079 %>% select(ID, site_dt3, cec_dt3, DEATH_CAUSE, CV_DEATH, NONCV_DEATH)
 
-dataout <- dataout %>% select(ID,  death, cvd_death, time_death, hfhosp, time_hfhosp, primary_ep, time_primary_ep)
+dataout <- dataout %>% select(ID, death, cvd_death, time_death, hfhosp, time_hfhosp, primary_ep, time_primary_ep)
 
 tcdata <- Reduce(
   function(...) {
@@ -97,12 +97,13 @@ combt007bymed <- combt007bymed %>%
 
 t007bymed <- bind_rows(
   t007bymed %>%
-    filter(str_detect(MEDCAT_WHODDE, "COMBO - ", negate = T)), 
-  combt007bymed)
+    filter(str_detect(MEDCAT_WHODDE, "COMBO - ", negate = T)),
+  combt007bymed
+)
 
-#koll <- t007bymed %>% count(MEDCAT_WHODDE)
+# koll <- t007bymed %>% count(MEDCAT_WHODDE)
 
-medfunc <- function(meds, name){
+medfunc <- function(meds, name) {
   tmp <- t007bymed %>%
     filter(MEDCAT_WHODDE %in% meds) %>%
     group_by(ID) %>%
@@ -110,11 +111,11 @@ medfunc <- function(meds, name){
     ungroup() %>%
     mutate(!!sym(name) := 1) %>%
     select(ID, !!sym(name))
-  
+
   tcdata <<- left_join(tcdata, tmp, by = "ID") %>%
     mutate(!!sym(name) := ynfac(replace_na(!!sym(name), 0)))
 }
-  
+
 medfunc(c("ACE INHIBITORS", "ANGIOTENSIN RECEPTOR BLOCKERS"), "rasi")
 medfunc(c("BETA BLOCKERS"), "bbl")
 medfunc(c("CALCIUM CHANNEL BLOCKERS"), "cbl")
