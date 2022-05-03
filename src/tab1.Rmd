@@ -71,18 +71,12 @@ tab1func <- function(stratavar, titlename, fontsize = 6) {
 }
 ```
 
-```{r tab11yr, cache=cacheon, dependson="tab1func"}
-tab1func("prevhfhosp1yr", "previous HFH within 1 year")
+```{r tab1cat, cache=cacheon, dependson="tab1func"}
+tab1func(stratavar = "prevhfhosp_cat", "previous HFH groups", fontsize = 3.5)
 ```
 
 \clearpage
 
 ```{r tab1, cache=cacheon, dependson="tab1func"}
 tab1func(stratavar = "prevhfhosp", "previous HFH")
-```
-
-\clearpage
-
-```{r tab1cat, cache=cacheon, dependson="tab1func"}
-tab1func(stratavar = "prevhfhosp_cat", "previous HFH 6 groups", fontsize = 4)
 ```

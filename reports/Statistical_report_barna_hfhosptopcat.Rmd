@@ -63,23 +63,7 @@ default_kable(flow, caption = "Flowchart", scale_down = F)
 
 ## Fixes
 
-Values < 0 in the continuous variables used in the models are replaced by missing (BARNA: Inte bara HB). 
-
-## Frågor/Kommentarer
-
-Kodade ihop tertilerna av NT-proBNP och BNP till en variabel som Lars föreslog någon gång. De blir ändå en hel del mindre missing. OK?
-
-Prev HF admission inkluderar även om de är randomiserade in hosp. Behöver detta dock vara just HF hosp? Skriva i limitaitons?
-
-Fler variabler for justering i modeller?
-
-I TOPCAT verkar de ha kodat Unknown död som EJ cvd. Drog till med sens analys där kodade Unknown som ej cvd (dock bara för primärt utfall, kan göra även för andra), men kan lyfta bort om blir för mycket info. 
-
-Det finns inte discharge date i adj events filen. Och det går inte att matcha ihop med t027 (sitens rapporterade events) för datumen diffar. Därför får time at risk vara även när pat är inneliggande för hosp. 
-
-Har 3 previous HDH variabler och 5 utfall. Det blir många olika kombos. 
-Går eliminera någon? Bör välja primär HFH och utfall. Har valt previous HFH inom 1 år som primär variabel (eftersom spline analyserna är på denna). 
-vet dock inte vad som är nytt och om riskerar att inte se det nya för alla andra siffror. Kan kanske också nöja sig med att presentera sens analyser (unknown death as non-cvd, exkludera ntprobnp/bnp för justering mm ENBART för primary outcome). Ska CVD/rec HFH vara primärt utfall (fördel: brukar vara det i trials nackdel: effekten av prev HFH borde vara främst på HFH, så man vill väll egentligen helst se de sep utfallen cvd och hfh var för sig?).  
+Values < 0 in the continuous variables presented are replaced by missing. Time from previous HFH after randomization < 0 is set to 0. 
 
 # Statistical analysis 
 
@@ -92,16 +76,19 @@ comparisons were made and therefore the results should be viewed with some care.
 ## Missing data
 
 Missing data was imputed with median for continuous variables and mode for categorical variables. 
+
 For the combined ntprobnp/bnp tertile variable missing values were coded as a separate category. 
-A sensitivity analyses was also performed excluding the NT-proBNP/BNP variable.
+A sensitivity analysis was also performed without adjustment for NT-proBNP/BNP in the model.
+
+Unknown causes of death are assumed to be CV. A sensitivity analysis was 
+performed were unknown was assumed to be non-CV.
 
 ## Previous HFH
 
-All analyses are performed for 3 different sets of previous HFH
+All analyses are performed for:
 
-- Previous HFH within 1 year from randomisation vs no previous HFH within 1 year (primary exposure)
-- Previous HFH vs no previous HFH
-- No previous HFH, HFH < 30d, HFH 30-90d, HFH 90d-6mo, HFH 6mo-1yr, HFH > 1yr. (FÄRRE GRUPPER, ANNAN INDELNING?)
+- No previous HFH, in-hospital, HFH 1-30d, HFH 31-90d, HFH 91-180d, HFH 181-365d, HFH > 365d
+- Previous HFH vs no previous HFH (at any time point)
 
 \clearpage
 
@@ -123,15 +110,14 @@ The following outcomes are considered:
 - CV mortality + first HF hospitalization
 - First HF hospitalization
 
-Time to first events were presented with cumulative incidence curves and 
-the mean cumulative function (MCF) was used to depict the recurrent events for previous HFH within 1 year. 
-SÄG TILL OM NI VILL HA FÖR DE ANDRA HFH VARIABLERNA OCKSÅ. 
+Time to first events were presented with cumulative incidence curves (CIC) and 
+the mean cumulative function (MCF) was used to depict the recurrent events by previous HFH. 
 
 Cox proportional hazards regressions were 
 used to model the time to first event, partly crude including only previous HFH in the model 
 and partly adjusted for variables indicated in 
-Table \ref{tab:tab11yr}. The variables were selected based on clinical relevance. 
-The continuous variables were included using natural cubic splines with 5 degrees of freedom. 
+Table \ref{tab:tab1cat}. The variables were selected based on clinical relevance. 
+The continuous variables were included using natural cubic splines with 4 degrees of freedom. 
 Due to violations to the proportional hazards assumption loop diuretics was stratified for in the models.  
 
 As a consistency analysis the time to first events were modelled using a sub-distributional hazards model [@fg] 
@@ -140,6 +126,8 @@ where death was treated as a competing event.
 Recurrent events were model using the Prentice-Williams-Peterson total-time model, crude and adjusted as above. 
 As a consistency analysis the recurrent events were modelled using a negative binomial regression 
 including the log of time as an offset in the model. 
+
+Time was censored at end of study or death not defined as an outcome. 
 
 The median (min-max) follow-up is 
 `r tcdata %>% summarise(med = fn(median(outtime_cvd), dig = 1),
@@ -163,10 +151,13 @@ The median (min-max) follow-up is
 
 ```
 
-### Visualization of association between previous HFH within 1 year and outcomes
+### Visualization of association between time from previous HFH and outcomes
 
-Previous HFH on a continuous scale was visually presented using natural cubic splines with 5 degrees of freedom. 
-The model only included patients with a previous HFH within 1 year from randomization. 
+Previous HFH on a continuous scale was visually presented using natural cubic splines with 4 degrees of freedom using the
+Cox proportional hazards regressions adjusted for the same variables as above for time to first event and
+the Prentice-Williams-Peterson total-time model, adjusted as above, for recurrent events. 
+
+The model only included patients with a previous HFH. 
 
 ```{r, child = "./src/splines.Rmd"}
 
@@ -183,9 +174,8 @@ Since age, map and bmi showed signs of non-linear associations with the outcome 
 
 ### Subgroups
 
-Performed using an interaction term between previous HFH and the selected respective variables. 
-
-WHICH SUBGROUPS???? AND FOR WHAT OUTCOME/previous HFH variable?
+Performed using an interaction term between previous HFH and the selected 
+respective variables for the outcome CV mortality + total HF hospitalization (primary endpoint). 
 
 ```{r, child = "./src/outforestsub.Rmd"}
 

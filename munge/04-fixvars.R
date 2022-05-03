@@ -17,7 +17,6 @@ tcdata <- tcdata %>%
     ),
     bmi = as.numeric(weight) / (as.numeric(height) / 100)^2,
     CR_mgdl = coalesce(CR_mgdl, CR_mgdL),
-    
     map = (SBP + 2 * DBP) / 3,
 
     # eGFR according to CKD-EPI 2021 https://www.nejm.org/doi/full/10.1056/NEJMoa2102953
@@ -25,6 +24,11 @@ tcdata <- tcdata %>%
     tmp_a = if_else(GENDER == "Female", -0.241, -0.302),
     tmp_add = if_else(GENDER == "Female", 1.012, 1),
     gfrckdepi2021 = 142 * pmin(CR_mgdl / tmp_k, 1)^tmp_a * pmax(CR_mgdl / tmp_k, 1)^-1.200 * 0.9938^age_entry * tmp_add,
+    CKD = case_when(
+      is.na(gfrckdepi2021) ~ NA_real_,
+      gfrckdepi2021 < 60 ~ 1,
+      gfrckdepi2021 >= 60 ~ 0
+    ),
     anemia = ynfac(case_when(
       is.na(HB_gdL) ~ NA_real_,
       GENDER == "Female" & HB_gdL < 12 | GENDER == "Male" & HB_gdL < 13 ~ 1,
@@ -35,18 +39,19 @@ tcdata <- tcdata %>%
       ef_tot >= 50 ~ 1
     ),
     levels = 1:2,
-    labels = c(">=50", "40-49")
+    labels = c("HFpEF", "HFmrEF")
     ),
     EF_cat = factor(case_when(
       EF < 50 ~ 2,
       EF >= 50 ~ 1
     ),
     levels = 1:2,
-    labels = c(">=50", "40-49")
+    labels = c("HFpEF", "HFmrEF")
     ),
     ntprobnp = if_else(BNP_TYPE == 2, BNP_VAL, NA_real_),
     bnp = if_else(BNP_TYPE == 1, BNP_VAL, NA_real_),
     chfdc_dt3num = chfdc_dt3 * -365,
+    chfdc_dt3num = if_else(chfdc_dt3num < 0, 0, chfdc_dt3num),
     chfdc_dt3num = if_else(STATUS == 1, 0, chfdc_dt3num),
     prevhfhosp = case_when(
       CHF_HOSP == 1 | STATUS == 1 ~ 1,
@@ -54,20 +59,22 @@ tcdata <- tcdata %>%
     ),
     prevhfhosp_cat = factor(case_when(
       prevhfhosp == 0 ~ 0,
-      chfdc_dt3num <= 30 ~ 1,
-      chfdc_dt3num <= 90 ~ 2,
-      chfdc_dt3num <= 30 * 6 ~ 3,
-      chfdc_dt3num <= 365 ~ 4,
-      chfdc_dt3num > 365 ~ 5
+      chfdc_dt3num == 0 ~ 6,
+      chfdc_dt3num <= 30 ~ 5,
+      chfdc_dt3num <= 90 ~ 4,
+      chfdc_dt3num <= 180 ~ 3,
+      chfdc_dt3num <= 365 ~ 2,
+      chfdc_dt3num > 365 ~ 1
     ),
-    levels = 0:5,
+    levels = 0:6,
     labels = c(
       "No prior HFH",
-      "HFH < 30d",
-      "HFH 30-90d",
-      "HFH 90d-6mo",
-      "HFH 6mo-1yr",
-      "HFH > 1yr"
+      "HFH >365 d",
+      "HFH 181-365 d",
+      "HFH 91-180 d",
+      "HFH 31-90 d",
+      "HFH 1-30 d",
+      "In-hospital"
     )
     ),
     prevhfhosp1yr = case_when(
@@ -76,7 +83,8 @@ tcdata <- tcdata %>%
     ),
     spironolactone = if_else(drug == 2, 0, 1),
     ECG_AFIB = if_else(ECG_AFIB == -2, NA_real_, ECG_AFIB),
-    nyha_class_cat = factor(nyha_class_cat, levels = 1:2, labels = c("I-II", "III-IV"))
+    nyha_class_cat = factor(nyha_class_cat, levels = 1:2, labels = c("I-II", "III-IV")),
+    countryfac = factor(country, levels = c(6, 5, 2, 1), labels = c("Argentina", "Brazil", "Canada", "US"))
   ) %>%
   mutate(across(c(
     MI,
@@ -93,7 +101,8 @@ tcdata <- tcdata %>%
     revasc,
     prevhfhosp,
     prevhfhosp1yr,
-    spironolactone
+    spironolactone,
+    CKD
   ), ynfac))
 
 
@@ -192,27 +201,3 @@ tcdata <- left_join(tcdata,
     out_cvdhfhno = ifelse(out_cvd == "Yes", out_hfhno + 1, out_hfhno),
     out_cvdsenshfhno = ifelse(out_cvdsens == "Yes", out_hfhno + 1, out_hfhno)
   )
-
-
-#
-# koll <- tcdata %>% filter(out_cvd != cvd_death) %>%
-#   select(term_dt_1, dod1, site_dt3, cec_dt3, DEATH_CAUSE, CV_DEATH, NONCV_DEATH, out_cvd, outtime_cvd, death, cvd_death, time_death, hfhosp, time_hfhosp, primary_ep, time_primary_ep)
-#
-# koll <- tcdata %>% filter(outtime_cvd != time_death) %>%
-#   select(term_dt_1, dod1, site_dt3, cec_dt3, DEATH_CAUSE, CV_DEATH, NONCV_DEATH, out_cvd, outtime_cvd, death, cvd_death, time_death, hfhosp, time_hfhosp, primary_ep, time_primary_ep)
-# koll <- tcdata %>% filter(outtime_hfh != time_hfhosp) %>%
-#   select(ID, term_dt_1, out_cvd, outtime_cvd, time_death, hfhosp, time_hfhosp, primary_ep, time_primary_ep, out_hfh, outtime_hfh)
-
-# koll2 <- t070 %>% filter(ID == 193981)
-#
-# tcdata %>% count(hfhosp)
-#
-
-#
-#
-# t030 <- t030 %>% select(ID, term_dt_1)
-#
-# t031 <- t031 %>% select(ID, dod1)
-#
-# t079 <- t079 %>% select(ID, site_dt3, cec_dt3, DEATH_CAUSE, CV_DEATH, NONCV_DEATH)
-#

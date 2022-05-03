@@ -31,7 +31,7 @@ hfhosprec <- hfhosprec %>%
 
 hfhosprec <- hfhosprec %>%
   group_by(ID) %>%
-  arrange(outtime) %>%
+  arrange(timestop) %>%
   mutate(
     eventno = 1:n(),
     lastevent = n()
@@ -39,7 +39,7 @@ hfhosprec <- hfhosprec %>%
   ungroup()
 
 tcdataimprec <- left_join(
-  tcdataimp %>% select(ID, prevhfhosp, prevhfhosp_cat, prevhfhosp1yr, chfdc_dt3num, age_entry_cat, !!!syms(modvars)),
+  tcdataimp %>% select(ID, prevhfhosp, prevhfhosp_cat, prevhfhosp1yr, chfdc_dt3num, age_entry_cat, CKD, !!!syms(modvars)),
   hfhosprec,
   by = "ID"
 )

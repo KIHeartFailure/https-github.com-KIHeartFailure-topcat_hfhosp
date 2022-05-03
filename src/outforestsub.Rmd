@@ -14,7 +14,7 @@ survmysub <- function(xvar, noxvar = NULL, xvarname) {
     out[1 + i, 1] <- paste0("  ", levs[i])
 
     mod <- coxph(formula(paste0(
-      "Surv(timestart, timestop, out_cvdhfh == 'Yes') ~ prevhfhosp1yr * relevel(", xvar, ", ref = '", levs[i], "') + ",
+      "Surv(timestart, timestop, out_cvdhfh == 'Yes') ~ prevhfhosp * relevel(", xvar, ", ref = '", levs[i], "') + ",
       paste(modvarscoxtmp, collapse = " + "),
       " + cluster(ID) + strata(eventno)"
     )),
@@ -94,15 +94,39 @@ forestdata <- rbind(
 forestdata <- rbind(
   forestdata,
   survmysub(
+    xvar = "CKD",
+    xvarname = "CKD"
+  )
+)
+
+forestdata <- rbind(
+  forestdata,
+  survmysub(
+    xvar = "AFIB",
+    xvarname = "AF"
+  )
+)
+
+forestdata <- rbind(
+  forestdata,
+  survmysub(
     xvar = "spironolactone",
     xvarname = "Spironolactone"
   )
 )
+
+forestdata <- rbind(
+  forestdata,
+  survmysub(
+    xvar = "loopdiuretics",
+    xvarname = "Loopdiuretics"
+  )
+)
 ```
 
-```{r outforestsubplot, cache=cacheon, dependson="outforestsub", fig.cap="Association between previous HFH within 1 year and CVD/total HFH within subgroups", fig.width=6, fig.height=8}
+```{r outforestsubplot, cache=cacheon, dependson="outforestsub", fig.cap="Association between previous HFH and CVD/total HFH within subgroups", fig.width=6, fig.height=8}
 
-cextext <- 1.2
+cextext <- 1
 
 minmy <- 0.5
 maxmy <- ceiling(exp(max(forestdata$uci, na.rm = T)) * 10) / 10
@@ -135,10 +159,6 @@ for (i in 1:nrow(forestdata)) {
     matplot(c(rev(forestdata$lci)[i], rev(forestdata$uci)[i]), c(i, i),
       type = "l", add = TRUE, col = global_cols[3], cex = 1, lwd = 2
     )
-    # if lci < 1
-    if (rev(forestdata$lci)[i] < log(minmy)) {
-      arrows(0.01, i, 0, i, col = global_cols[3], code = 2, length = 0.15, lwd = 2)
-    }
   }
 }
 

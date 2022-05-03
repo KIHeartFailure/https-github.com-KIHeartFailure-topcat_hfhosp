@@ -16,8 +16,4 @@ flow <- rbind(flow, c("No missing info on previous HF hospitalization", nrow(tcd
 #  filter(IN_ALL == 1 & EX_ALL == 1)
 # flow <- rbind(flow, c("Fulfilling inclusion and no exclusion criteria", nrow(tcdata)))
 
-flow <- rbind(flow, c("BELOW INCLUDED FOR SPLINE ANALYSIS", NA))
-
-flow <- rbind(flow, c("Prior HFH", nrow(tmp <- tcdata %>% filter(prevhfhosp == "Yes"))))
-flow <- rbind(flow, c("HFH <= 1 year prior", nrow(tmp <- tmp %>% filter(chfdc_dt3num <= 365))))
-flow <- rbind(flow, c("Previous HFH dates after randomization (incorrect)", nrow(tmp <- tmp %>% filter(chfdc_dt3num >= 0))))
+flow <- rbind(flow, c(". Included in spline analysis - Prior HFH", nrow(tmp <- tcdata %>% filter(prevhfhosp == "Yes"))))

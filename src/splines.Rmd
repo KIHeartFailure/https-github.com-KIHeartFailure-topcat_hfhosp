@@ -39,14 +39,14 @@ mytermplot <- function(mod, xlab = "Time since previous HFH (months)", ylab = "H
 splinefunc <- function(time = NULL, event) {
   if (!is.null(time)) {
     mod <- coxph(formula(paste0(
-      "Surv(", time, ",", event, " == 'Yes') ~ ns(chfdc_dt3num, df = 5) + ",
+      "Surv(", time, ",", event, " == 'Yes') ~ ns(chfdc_dt3num, df = 4) + ",
       paste(modvarscox, collapse = " + ")
     )),
     data = tcdataimphf
     )
   } else {
     mod <- coxph(formula(paste0(
-      "Surv(timestart, timestop, ", event, " == 'Yes') ~ ns(chfdc_dt3num, df = 5) + ",
+      "Surv(timestart, timestop, ", event, " == 'Yes') ~ ns(chfdc_dt3num, df = 4) + ",
       paste(modvarscox, collapse = " + "),
       " + cluster(ID) + strata(eventno)"
     )),
