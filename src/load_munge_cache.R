@@ -21,6 +21,3 @@ ProjectTemplate::cache("modvarscox")
 ProjectTemplate::cache("tcdata")
 ProjectTemplate::cache("tcdataimp")
 ProjectTemplate::cache("tcdataimprec")
-
-ProjectTemplate::cache("tcdataimphf")
-ProjectTemplate::cache("tcdataimprechf")

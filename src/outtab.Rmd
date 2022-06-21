@@ -70,7 +70,7 @@ survfunc <- function(time, event, eventcr = NULL, hospvarcr = NULL, eventname, h
       fn(mod$coef[1:(nlevsh - 1), 5], dig = 3, p = TRUE)
     ))
 
-    ## adjusted 
+    ## adjusted
     out[3, 2] <- "Adjusted HR (95% CI), p-value"
 
     mod <- summary(coxph(formula(paste0(
@@ -141,7 +141,7 @@ survfunc <- function(time, event, eventcr = NULL, hospvarcr = NULL, eventname, h
     ))
 
 
-    ## adjusted 
+    ## adjusted
     out[3, 2] <- "Adjusted, PWP, HR (95% CI), p-value"
 
     mod <- summary(coxph(formula(paste0(
@@ -181,7 +181,7 @@ survfunc <- function(time, event, eventcr = NULL, hospvarcr = NULL, eventname, h
 
     # neg binomial regression
 
-    ## adjusted 
+    ## adjusted
     mod <- glm.nb(formula(paste0(
       event, " ~ ", hospvar, " + ",
       paste(modvarscox, collapse = " + "), " + offset(log(", time, "))"
@@ -265,7 +265,7 @@ out <- survfunc2(
   hospvar2 = "prevhfhosp_cat",
   hospvarcr2 = c(
     "prevhfhosp_cat_cr_Inmhospital",
-    "prevhfhosp_cat_cr_HFH1m30d", 
+    "prevhfhosp_cat_cr_HFH1m30d",
     "prevhfhosp_cat_cr_HFH31m90d",
     "prevhfhosp_cat_cr_HFH91m180d",
     "prevhfhosp_cat_cr_HFH181m365d",
@@ -273,7 +273,7 @@ out <- survfunc2(
   )
 )
 
-write.xlsx(out, paste0("./output/tabs/out_cat_", Sys.Date(), ".xlsx"), rowNames = FALSE, overwrite = TRUE)
+write.xlsx(out, paste0("./output/tabs/Association between previous HFH groups and outcomes_", Sys.Date(), ".xlsx"), rowNames = FALSE, overwrite = TRUE)
 
 default_kable(out,
   # font_size = 6,
@@ -286,7 +286,7 @@ default_kable(out,
 
 out <- survfunc2(hospvar2 = "prevhfhosp", hospvarcr2 = "prevhfhosp_cr_Yes")
 
-write.xlsx(out, paste0("./output/tabs/out_", Sys.Date(), ".xlsx"), rowNames = FALSE, overwrite = TRUE)
+write.xlsx(out, paste0("./output/tabs/Association between previous HFH and outcomes_", Sys.Date(), ".xlsx"), rowNames = FALSE, overwrite = TRUE)
 
 default_kable(out,
   # font_size = 3#,

@@ -12,8 +12,4 @@ tcdata <- tcdata %>%
   filter(!is.na(CHF_HOSP))
 flow <- rbind(flow, c("No missing info on previous HF hospitalization", nrow(tcdata)))
 
-# tcdata <- tcdata %>%
-#  filter(IN_ALL == 1 & EX_ALL == 1)
-# flow <- rbind(flow, c("Fulfilling inclusion and no exclusion criteria", nrow(tcdata)))
-
 flow <- rbind(flow, c(". Included in spline analysis - Prior HFH", nrow(tmp <- tcdata %>% filter(prevhfhosp == "Yes"))))

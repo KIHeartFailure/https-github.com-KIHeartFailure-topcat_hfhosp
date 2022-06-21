@@ -1,24 +1,32 @@
 
 ```{r splinefunc, cache=cacheon}
 
-mytermplot <- function(mod, xlab = "Time since previous HFH (months)", ylab = "Hazard Ratio (95% CI)", yaxismy = c(0.3, 0.5, 1, 1.5, 2, 2.5)) {
+mytermplot <- function(mod, xlab = "Time since previous HFH (months)", ylab = "Hazard Ratio (95% CI)",
+                       yaxismy = c(0.7, 0.8, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5)) {
   cexmy <- 1.2
 
   zz <- termplot(mod, se = TRUE, plot = FALSE, terms = 1)
-  lci <- zz$chfdc_dt3num$y - 1.96 * zz$chfdc_dt3num$se
-  uci <- zz$chfdc_dt3num$y + 1.96 * zz$chfdc_dt3num$se
+
+  # HR = 1 at median https://cran.r-project.org/web/packages/survival/vignettes/splines.pdf
+  hfterm <- zz$chfdc_dt3num
+
+  med <- median(tcdataimp$chfdc_dt3num, na.rm = T)
+  center <- with(hfterm, y[x == med])
+
+  lci <- zz$chfdc_dt3num$y - 1.96 * zz$chfdc_dt3num$se - center
+  uci <- zz$chfdc_dt3num$y + 1.96 * zz$chfdc_dt3num$se - center
 
   # c(bottom, left, top, right)
   par(mar = c(5, 4, 2, 2) + 0.1)
 
-  plot(zz$chfdc_dt3num$x, zz$chfdc_dt3num$y,
+  plot(hfterm$x, hfterm$y - center,
     type = "n", axes = F,
     xaxs = "i", yaxs = "i", xlim = c(0, 366), ylim = log(c(min(yaxismy), max(yaxismy))),
     xlab = xlab, ylab = ylab, cex.lab = cexmy
   )
 
   polygon(
-    x = c(rev(zz$chfdc_dt3num$x), zz$chfdc_dt3num$x),
+    x = c(rev(hfterm$x), hfterm$x),
     y = c(rev(uci), lci),
     col = global_cols[8],
     border = NA
@@ -27,11 +35,11 @@ mytermplot <- function(mod, xlab = "Time since previous HFH (months)", ylab = "H
   axis(1, seq(0, 12, 1) * 30.5, seq(0, 12, 1), cex.axis = cexmy)
   axis(2, log(yaxismy), yaxismy, las = 2, cex.axis = cexmy)
 
-  lines(zz$chfdc_dt3num$x, zz$chfdc_dt3num$y, lwd = 3, col = global_cols[3])
+  lines(hfterm$x, hfterm$y - center, lwd = 3, col = global_cols[3])
 
   abline(h = 0, col = 1, lty = 3, lwd = 2)
 
-  rug(tcdataimphf$chfdc_dt3num)
+  rug(tcdataimp$chfdc_dt3num)
 
   invisible(zz)
 }
@@ -42,7 +50,7 @@ splinefunc <- function(time = NULL, event) {
       "Surv(", time, ",", event, " == 'Yes') ~ ns(chfdc_dt3num, df = 4) + ",
       paste(modvarscox, collapse = " + ")
     )),
-    data = tcdataimphf
+    data = tcdataimp
     )
   } else {
     mod <- coxph(formula(paste0(
@@ -50,7 +58,7 @@ splinefunc <- function(time = NULL, event) {
       paste(modvarscox, collapse = " + "),
       " + cluster(ID) + strata(eventno)"
     )),
-    data = tcdataimprechf
+    data = tcdataimprec
     )
   }
   mytermplot(mod)

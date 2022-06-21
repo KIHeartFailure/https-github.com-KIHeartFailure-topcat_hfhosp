@@ -29,7 +29,7 @@ kmfunc <- function(data, time, event, eventname, eventrec, hospvar, yposplus = r
     par(mar = c(6.5, 8.85, 1, 1) + 0.1)
     cols <- global_cols[c(8, 3)]
     lwdmy <- 4
-    ltymy = c(1, 2)
+    ltymy <- c(1, 2)
   }
   if (nlevsh == 7) {
     cexmy <- 1.2
@@ -45,7 +45,7 @@ kmfunc <- function(data, time, event, eventname, eventrec, hospvar, yposplus = r
     col = cols,
     mark.time = FALSE,
     bty = "n",
-    xlim = c(0, 6),
+    xlim = c(0, 5),
     ylim = c(0, 1),
     xlab = "Follow-up (years)",
     cex.lab = cexmy,
@@ -56,10 +56,10 @@ kmfunc <- function(data, time, event, eventname, eventrec, hospvar, yposplus = r
   )
 
   axis(2, seq(0, 1, 0.25), seq(0, 100, 25), las = 2, cex.axis = cexmy)
-  axis(1, at = seq(0, 6, 1), seq(0, 6, 1), cex.axis = cexmy)
+  axis(1, at = seq(0, 5, 1), seq(0, 5, 1), cex.axis = cexmy)
 
   if (nlevsh == 2) {
-    ypos <- 1 - summary(fits, 4, extend = T)$surv
+    ypos <- 1 - summary(fits, 3, extend = T)$surv
 
     ylabs <- bind_cols(
       ypos = ypos,
@@ -67,20 +67,20 @@ kmfunc <- function(data, time, event, eventname, eventrec, hospvar, yposplus = r
     ) %>%
       arrange(ypos)
 
-    text(ylabs$ypos[1] - yposplus[1], x = 4, ylabs$ytext[1], pos = 4, cex = cexmy)
-    text(ylabs$ypos[2] + yposplus[2], x = 4, ylabs$ytext[2], pos = 2, cex = cexmy)
+    text(ylabs$ypos[1] - yposplus[1], x = 3, ylabs$ytext[1], pos = 4, cex = cexmy)
+    text(ylabs$ypos[2] + yposplus[2], x = 3, ylabs$ytext[2], pos = 2, cex = cexmy)
 
-    text(y = 0.9, x = 1.5, "Adj HR (95% CI), p-value", cex = cexmy, adj = 0.5)
+    text(y = 0.9, x = 1.5, "Adjusted HR (95% CI), p-value", cex = cexmy, adj = 0.5)
     text(y = 0.85, x = 1.5, hrprint, cex = cexmy, adj = 0.5)
 
-    mtext("No. at risk", side = 1, line = 3.5, at = -1.8, adj = 0, cex = cexmy, font = 2)
-    mtext("No previous HFH", side = 1, line = 4.5, at = -1.8, adj = 0, cex = cexmy)
-    mtext("Previous HFH", side = 1, line = 5.5, at = -1.8, adj = 0, cex = cexmy)
+    mtext("No. at risk", side = 1, line = 3.5, at = -1.5, adj = 0, cex = cexmy, font = 2)
+    mtext("No previous HFH", side = 1, line = 4.5, at = -1.5, adj = 0, cex = cexmy)
+    mtext("Previous HFH", side = 1, line = 5.5, at = -1.5, adj = 0, cex = cexmy)
 
-    nrisk <- summary(fits, seq(0, 6, 1), extend = T)
+    nrisk <- summary(fits, seq(0, 5, 1), extend = T)
 
-    axis(1, at = seq(0, 6, 1), labels = nrisk$n.risk[nrisk$strata == levels(nrisk$strata)[1]], line = 3.5, tick = FALSE, cex.axis = cexmy)
-    axis(1, at = seq(0, 6, 1), labels = nrisk$n.risk[nrisk$strata == levels(nrisk$strata)[2]], line = 4.5, tick = FALSE, cex.axis = cexmy)
+    axis(1, at = seq(0, 5, 1), labels = nrisk$n.risk[nrisk$strata == levels(nrisk$strata)[1]], line = 3.5, tick = FALSE, cex.axis = cexmy)
+    axis(1, at = seq(0, 5, 1), labels = nrisk$n.risk[nrisk$strata == levels(nrisk$strata)[2]], line = 4.5, tick = FALSE, cex.axis = cexmy)
   }
 
   if (nlevsh == 7) {
@@ -89,7 +89,7 @@ kmfunc <- function(data, time, event, eventname, eventrec, hospvar, yposplus = r
       legend = levsh,
       lty = ltymy, col = cols, lwd = lwdmy, bty = "n", cex = cexmy
     )
-    text(x = 2.905, 0.96, "Adj HR (95% CI), p", cex = cexmy)
+    text(x = 2.9, 0.96, "Adjusted HR (95% CI), p-value", cex = cexmy)
     legend(x = 1.9, y = 0.95, c("ref", hrprint), bty = "n", cex = cexmy)
   }
 }
@@ -155,7 +155,7 @@ mcffunc <- function(eventname, event, hospvar, yposplus = rep(0.05, 2)) {
     type = "l",
     ylab = paste0("Mean cumulative ", eventname, " (per 100 patients)"),
     col = cols[1],
-    xlim = c(0, 6),
+    xlim = c(0, 5),
     ylim = c(0, 2),
     xlab = "Follow-up (years)",
     cex.lab = cexmy,
@@ -184,12 +184,12 @@ mcffunc <- function(eventname, event, hospvar, yposplus = rep(0.05, 2)) {
   }
 
   axis(2, seq(0, 2, 0.5), seq(0, 200, 50), las = 2, cex.axis = cexmy)
-  axis(1, at = seq(0, 6, 1), seq(0, 6, 1), cex.axis = cexmy)
+  axis(1, at = seq(0, 5, 1), seq(0, 5, 1), cex.axis = cexmy)
 
   if (nlevsh == 2) {
     ypos <- c(
-      last(fits@MCF$MCF[fits@MCF$time <= 4 & fits@MCF[hospvar] == levsh[1]]),
-      last(fits@MCF$MCF[fits@MCF$time <= 4 & fits@MCF[hospvar] == levsh[2]])
+      last(fits@MCF$MCF[fits@MCF$time <= 3 & fits@MCF[hospvar] == levsh[1]]),
+      last(fits@MCF$MCF[fits@MCF$time <= 3 & fits@MCF[hospvar] == levsh[2]])
     )
 
     ylabs <- bind_cols(
@@ -198,28 +198,28 @@ mcffunc <- function(eventname, event, hospvar, yposplus = rep(0.05, 2)) {
     ) %>%
       arrange(ypos)
 
-    text(ylabs$ypos[1] - yposplus[1], x = 4, ylabs$ytext[1], pos = 4, cex = cexmy)
-    text(ylabs$ypos[2] + yposplus[2], x = 4, ylabs$ytext[2], pos = 2, cex = cexmy)
+    text(ylabs$ypos[1] - yposplus[1], x = 3, ylabs$ytext[1], pos = 4, cex = cexmy)
+    text(ylabs$ypos[2] + yposplus[2], x = 3, ylabs$ytext[2], pos = 2, cex = cexmy)
 
-    text(y = 2 * 0.9, x = 1.5, "Adj HR (95% CI), p-value", cex = cexmy, adj = 0.5)
+    text(y = 2 * 0.9, x = 1.5, "Adjusted HR (95% CI), p-value", cex = cexmy, adj = 0.5)
     text(y = 2 * 0.85, x = 1.5, hrprint, cex = cexmy, adj = 0.5)
 
-    mtext("No. at risk", side = 1, line = 3.5, at = -1.8, adj = 0, cex = cexmy, font = 2)
-    mtext("No previous HFH", side = 1, line = 4.5, at = -1.8, adj = 0, cex = cexmy)
-    mtext("Previous HFH", side = 1, line = 5.5, at = -1.8, adj = 0, cex = cexmy)
+    mtext("No. at risk", side = 1, line = 3.5, at = -1.5, adj = 0, cex = cexmy, font = 2)
+    mtext("No previous HFH", side = 1, line = 4.5, at = -1.5, adj = 0, cex = cexmy)
+    mtext("Previous HFH", side = 1, line = 5.5, at = -1.5, adj = 0, cex = cexmy)
 
-    nrisk <- summary(fitsn, seq(0, 6, 1), extend = T)
+    nrisk <- summary(fitsn, seq(0, 5, 1), extend = T)
 
-    axis(1, at = seq(0, 6, 1), labels = nrisk$n.risk[nrisk$strata == levels(nrisk$strata)[1]], line = 3.5, tick = FALSE, cex.axis = cexmy)
-    axis(1, at = seq(0, 6, 1), labels = nrisk$n.risk[nrisk$strata == levels(nrisk$strata)[2]], line = 4.5, tick = FALSE, cex.axis = cexmy)
+    axis(1, at = seq(0, 5, 1), labels = nrisk$n.risk[nrisk$strata == levels(nrisk$strata)[1]], line = 3.5, tick = FALSE, cex.axis = cexmy)
+    axis(1, at = seq(0, 5, 1), labels = nrisk$n.risk[nrisk$strata == levels(nrisk$strata)[2]], line = 4.5, tick = FALSE, cex.axis = cexmy)
   }
   if (nlevsh == 7) {
-        legend(
+    legend(
       x = 0.2, y = 0.95 * 2,
       legend = levsh,
       lty = ltymy, col = cols, lwd = lwdmy, bty = "n", cex = cexmy
     )
-    text(x = 2.905, 0.96 * 2, "Adj HR (95% CI), p", cex = cexmy)
+    text(x = 2.9, 0.96 * 2, "Adjusted HR (95% CI), p-value", cex = cexmy)
     legend(x = 1.9, y = 0.95 * 2, c("ref", hrprint), bty = "n", cex = cexmy)
   }
 }

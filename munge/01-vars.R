@@ -2,7 +2,7 @@ tabvars <- c(
   "age_entry",
   "GENDER",
   "race",
-  #"countryfac",
+  # "countryfac",
   "ef_tot",
   "ef_tot_cat",
   "EF",
@@ -47,13 +47,13 @@ nomodvars <- c(
   "DBP",
   "CR_mgdl",
   "anemia",
-  "NA_mmolL", 
+  "NA_mmolL",
   "ntprobnp",
   "ntprobnp_cat",
   "bnp",
   "bnp_cat",
   "QRS_DUR", "ECG_AFIB",
-  "diuretics", 
+  "diuretics",
   "CKD"
 )
 
@@ -62,4 +62,4 @@ modvars <- tabvars[!tabvars %in% nomodvars]
 modvarscox <- modvars
 modvarscox[modvarscox == "loopdiuretics"] <- "strata(loopdiuretics)" # strata variables
 kontvars <- c("age_entry", "bmi", "HR", "SBP", "gfrckdepi2021", "HB_gdL", "K_mmolL")
-modvarscox[modvarscox %in% kontvars] <- paste0("ns(", kontvars, ", df = 4)") # continous variables w splines
+modvarscox[modvarscox %in% kontvars] <- paste0("ns(", kontvars, ", df = 4)") # continuous variables w splines

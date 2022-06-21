@@ -54,7 +54,7 @@ forestdata <- rbind(
   forestdata,
   survmysub(
     xvar = "age_entry_cat",
-    noxvar = "age_entry",
+    noxvar = "ns(age_entry, df = 4)",
     xvarname = "Age (years)"
   )
 )
@@ -95,6 +95,7 @@ forestdata <- rbind(
   forestdata,
   survmysub(
     xvar = "CKD",
+    noxvar = "ns(gfrckdepi2021, df = 4)",
     xvarname = "CKD"
   )
 )

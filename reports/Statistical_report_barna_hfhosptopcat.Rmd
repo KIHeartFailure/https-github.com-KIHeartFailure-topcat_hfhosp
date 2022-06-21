@@ -1,6 +1,5 @@
 ---
 title: 'Statistical report: Assessment of preceding heart failure admission as a predictor of outcomes in TOPCAT'
-subtitle: 'DRAFT'
 author: 'Statistician: Lina Benson'
   
 date: "`r Sys.Date()`"
@@ -15,8 +14,6 @@ bibliography: references.bib
 nocite: '@*'
 urlcolor: blue
 linkcolor: black
-header-includes:
-   - \usepackage{draftwatermark}
 ---
 
 \newpage 
@@ -63,7 +60,9 @@ default_kable(flow, caption = "Flowchart", scale_down = F)
 
 ## Fixes
 
-Values < 0 in the continuous variables presented are replaced by missing. Time from previous HFH after randomization < 0 is set to 0. 
+Values < 0 in the continuous variables presented are replaced by missing. Time from previous HFH that is after randomization is set to 0. 
+
+NT-proBNP and BNP are categorized according to tertiles and the tertiles are combined into one variable. 
 
 # Statistical analysis 
 
@@ -156,6 +155,7 @@ The median (min-max) follow-up is
 Previous HFH on a continuous scale was visually presented using natural cubic splines with 4 degrees of freedom using the
 Cox proportional hazards regressions adjusted for the same variables as above for time to first event and
 the Prentice-Williams-Peterson total-time model, adjusted as above, for recurrent events. 
+The reference (HR = 1) in the plots is the median time from previous HFH.  
 
 The model only included patients with a previous HFH. 
 

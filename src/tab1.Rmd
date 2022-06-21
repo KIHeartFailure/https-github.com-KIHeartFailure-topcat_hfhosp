@@ -32,7 +32,8 @@ tab1func <- function(stratavar, titlename, fontsize = 6) {
       )
     )
 
-  write.xlsx(tab1 %>% select(Variable, Missing:p), paste0("./output/tabs/tab1_", titlename, Sys.Date(), ".xlsx"), rowNames = FALSE, overwrite = TRUE)
+  write.xlsx(tab1 %>% select(Variable, Missing:p), paste0("./output/tabs/Baseline characteristics by ", titlename, "_", 
+                                                          Sys.Date(), ".xlsx"), rowNames = FALSE, overwrite = TRUE)
 
   # footnotes
   tab1 <- tab1 %>%
@@ -66,7 +67,8 @@ tab1func <- function(stratavar, titlename, fontsize = 6) {
     general = c(
       "Categorical variables are presented with n (%) and tested with chi-square test and",
       "continuous variables with median [q1-q3] and tested with Kruskal-Wallis test."
-    )
+    ), 
+    symbol = c("Included for adjustment in regression models.")
   )
 }
 ```
