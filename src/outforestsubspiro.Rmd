@@ -1,0 +1,128 @@
+```{r outforestsubspiro, cache=cacheon}
+levs <- levels(tcdataimp$prevhfhosp_cat)
+out <- data.frame(matrix(NA, ncol = 5, nrow = length(levs)))
+colnames(out) <- c("Subgroup", "HR (95% CI)", "coef", "lci", "uci")
+
+out[, 1] <- levs
+
+for (i in seq_along(levs)) {
+  mod <- coxph(formula(paste0(
+    "Surv(timestart, timestop, out_cvdhfh == 'Yes') ~ spironolactone * relevel(prevhfhosp_cat, ref = '",
+    levs[i], "') + cluster(ID) + strata(eventno)"
+  )),
+  data = tcdataimprec
+  )
+  smod <- summary(mod)
+
+  out[i, 2] <- paste0(
+    fn(smod$conf.int[1, "exp(coef)"], dig = 2),
+    " (", fn(smod$conf.int[1, "lower .95"], dig = 2),
+    "-", fn(smod$conf.int[1, "upper .95"], dig = 2), "), ", 
+    fn(smod$coefficients[1, "Pr(>|z|)"], p = T, dig = 3)
+  )
+
+  out[i, 3] <- log(smod$conf.int[1, "exp(coef)"])
+  out[i, 4] <- log(smod$conf.int[1, "lower .95"])
+  out[i, 5] <- log(smod$conf.int[1, "upper .95"])
+}
+
+forestdata <- out
+forestdata <- forestdata %>%
+  mutate(
+    Subgroup = str_replace_all(Subgroup, "HFH", ""),
+    Subgroup = str_replace_all(Subgroup, "d", "days"),
+    order = n():1
+  )
+```
+
+```{r outforestsubplotspiro, cache=cacheon, dependson="outforestsubspiro", fig.cap="Association between Spironolactone and CVD/total HFH in previous HFH subgroups", fig.width=6, fig.height=8}
+
+cextext <- 1
+
+minmy <- 0.4
+maxmy <- 2
+
+# c(bottom, left, top, right)
+par(mar = c(4, 16, 1, 2) + 0.2)
+
+
+plot(forestdata$coef, forestdata$order,
+  cex = 2,
+  xlim = c(
+    log(minmy),
+    log(maxmy)
+  ),
+  xlab = "",
+  cex.lab = cextext,
+  ylim = c(1, max(forestdata$order) + 1),
+  axes = FALSE,
+  ylab = NA,
+  main = NA,
+  type = "p",
+  pch = 22,
+  bg = global_cols[3],
+  col = global_cols[3],
+  xaxs = "i"
+)
+
+segments(x0 = forestdata$lci, 
+         x1 = forestdata$uci, 
+         y0 = forestdata$order, 
+         col = global_cols[3], 
+         lwd = 2)
+
+# lower
+segments(x0 = forestdata$lci, 
+         y0 = forestdata$order - 0.1, 
+         y1 = forestdata$order + 0.1, 
+         col = global_cols[3], 
+         lwd = 2)
+# upper
+segments(x0 = forestdata$uci, 
+         y0 = forestdata$order - 0.1, 
+         y1 = forestdata$order + 0.1, 
+         col = global_cols[3], 
+         lwd = 2)
+
+matplot(c(log(1), log(1)), c(-1, nrow(forestdata)), type = "l", lwd = 1, lty = 3, add = TRUE, col = 1)
+
+axismy <- seq(minmy, maxmy, 0.1)
+axismy2 <- axismy
+axismy2[!axismy %in% c(minmy, maxmy)] <- NA
+
+axis(1,
+  cex.axis = cextext, at = log(axismy),
+  labels = axismy2
+)
+axis(1,
+  cex.axis = cextext, at = log(1),
+  labels = 1
+)
+
+axis(2,
+  at = nrow(forestdata) + 1,
+  labels = "Previous HFH",
+  cex.axis = cextext, tick = FALSE, las = 2, line = 15, hadj = 0, font = 2
+)
+axis(2,
+  at = forestdata$order,
+  labels = forestdata$Subgroup,
+  cex.axis = cextext, tick = FALSE, las = 2, line = 15, hadj = 0
+)
+
+axis(2,
+  at = nrow(forestdata) + 1,
+  labels = "HR (95% CI), p-value",
+  cex.axis = cextext, tick = FALSE, las = 2, line = 4.5, hadj = 0.5, font = 2
+)
+axis(2,
+  at = forestdata$order,
+  labels = forestdata$`HR (95% CI)`,
+  cex.axis = cextext, tick = FALSE, las = 2, line = 4.5, hadj = 0.5
+)
+
+axis(1,
+  at = (log(maxmy) + log(minmy)) / 2, cex.axis = cextext,
+  labels = "HR (95% CI)", line = 1, tick = FALSE
+)
+```

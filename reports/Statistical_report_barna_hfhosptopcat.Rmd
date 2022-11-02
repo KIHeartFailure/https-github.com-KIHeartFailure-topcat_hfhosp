@@ -152,7 +152,8 @@ The median (min-max) follow-up is
 
 ### Visualization of association between time from previous HFH and outcomes
 
-Previous HFH on a continuous scale was visually presented using natural cubic splines with 4 degrees of freedom using the
+Previous HFH on a continuous scale was visually presented using natural cubic 
+splines with 4 degrees of freedom using the
 Cox proportional hazards regressions adjusted for the same variables as above for time to first event and
 the Prentice-Williams-Peterson total-time model, adjusted as above, for recurrent events. 
 The reference (HR = 1) in the plots is the median time from previous HFH.  
@@ -178,6 +179,17 @@ Performed using an interaction term between previous HFH and the selected
 respective variables for the outcome CV mortality + total HF hospitalization (primary endpoint). 
 
 ```{r, child = "./src/outforestsub.Rmd"}
+
+```
+
+\clearpage
+\newpage
+
+### Association between Spironolactone and outcomes in different previous HFH subgroups
+
+Performed using an interaction term between Spironolactone and previous HFH groups for the outcome CV mortality + total HF hospitalization (primary endpoint). Adjustment is not performed. 
+
+```{r, child = "./src/outforestsubspiro.Rmd"}
 
 ```
 
