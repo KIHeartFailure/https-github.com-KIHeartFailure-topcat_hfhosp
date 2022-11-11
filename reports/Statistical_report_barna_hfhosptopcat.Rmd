@@ -187,11 +187,13 @@ respective variables for the outcome CV mortality + total HF hospitalization (pr
 
 ### Association between Spironolactone and outcomes in different previous HFH subgroups
 
-Performed using an interaction term between Spironolactone and previous HFH groups for the outcome CV mortality + total HF hospitalization (primary endpoint). Adjustment is not performed. 
-
 ```{r, child = "./src/outforestsubspiro.Rmd"}
 
 ```
+
+Performed using an interaction term between Spironolactone and previous HFH groups for the outcome CV mortality + total HF hospitalization (primary endpoint). Adjustment is not performed. 
+The p-value for the interaction between Spironolactone and previous HFH is `r forestdata[1, 6]`. 
+
 
 \clearpage
 \newpage

@@ -1,7 +1,7 @@
 ```{r outforestsubspiro, cache=cacheon}
 levs <- levels(tcdataimp$prevhfhosp_cat)
-out <- data.frame(matrix(NA, ncol = 5, nrow = length(levs)))
-colnames(out) <- c("Subgroup", "HR (95% CI)", "coef", "lci", "uci")
+out <- data.frame(matrix(NA, ncol = 6, nrow = length(levs)))
+colnames(out) <- c("Subgroup", "HR (95% CI)", "coef", "lci", "uci", "pint")
 
 out[, 1] <- levs
 
@@ -17,13 +17,22 @@ for (i in seq_along(levs)) {
   out[i, 2] <- paste0(
     fn(smod$conf.int[1, "exp(coef)"], dig = 2),
     " (", fn(smod$conf.int[1, "lower .95"], dig = 2),
-    "-", fn(smod$conf.int[1, "upper .95"], dig = 2), "), ", 
+    "-", fn(smod$conf.int[1, "upper .95"], dig = 2), "), ",
     fn(smod$coefficients[1, "Pr(>|z|)"], p = T, dig = 3)
   )
 
   out[i, 3] <- log(smod$conf.int[1, "exp(coef)"])
   out[i, 4] <- log(smod$conf.int[1, "lower .95"])
   out[i, 5] <- log(smod$conf.int[1, "upper .95"])
+
+  if (i == 1) {
+    p <- aod::wald.test(
+      Sigma = vcov(mod),
+      b = coef(mod),
+      Terms = 8:length(mod$coefficients)
+    )
+    out[1, 6] <- fn(p$result$chi2["P"], dig = 3, p = TRUE)
+  }
 }
 
 forestdata <- out
@@ -65,24 +74,30 @@ plot(forestdata$coef, forestdata$order,
   xaxs = "i"
 )
 
-segments(x0 = forestdata$lci, 
-         x1 = forestdata$uci, 
-         y0 = forestdata$order, 
-         col = global_cols[3], 
-         lwd = 2)
+segments(
+  x0 = forestdata$lci,
+  x1 = forestdata$uci,
+  y0 = forestdata$order,
+  col = global_cols[3],
+  lwd = 2
+)
 
 # lower
-segments(x0 = forestdata$lci, 
-         y0 = forestdata$order - 0.1, 
-         y1 = forestdata$order + 0.1, 
-         col = global_cols[3], 
-         lwd = 2)
+segments(
+  x0 = forestdata$lci,
+  y0 = forestdata$order - 0.1,
+  y1 = forestdata$order + 0.1,
+  col = global_cols[3],
+  lwd = 2
+)
 # upper
-segments(x0 = forestdata$uci, 
-         y0 = forestdata$order - 0.1, 
-         y1 = forestdata$order + 0.1, 
-         col = global_cols[3], 
-         lwd = 2)
+segments(
+  x0 = forestdata$uci,
+  y0 = forestdata$order - 0.1,
+  y1 = forestdata$order + 0.1,
+  col = global_cols[3],
+  lwd = 2
+)
 
 matplot(c(log(1), log(1)), c(-1, nrow(forestdata)), type = "l", lwd = 1, lty = 3, add = TRUE, col = 1)
 
