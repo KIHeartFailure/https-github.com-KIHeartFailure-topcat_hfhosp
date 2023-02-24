@@ -1,13 +1,14 @@
 tcdata <- tcdata %>%
   mutate(
-    race = factor(case_when(
-      RACE_WHITE == 1 ~ 1,
-      RACE_BLACK == 1 ~ 2,
-      RACE_ASIAN == 1 ~ 3,
-      RACE_OTHER == 1 ~ 4
-    ),
-    levels = 1:4,
-    labels = c("White", "Black", "Asian", "Other")
+    race = factor(
+      case_when(
+        RACE_WHITE == 1 ~ 1,
+        RACE_BLACK == 1 ~ 2,
+        RACE_ASIAN == 1 ~ 3,
+        RACE_OTHER == 1 ~ 4
+      ),
+      levels = 1:4,
+      labels = c("White", "Black", "Asian", "Other")
     ),
     GENDER = factor(GENDER, levels = 1:2, labels = c("Male", "Female")),
     revasc = case_when(
@@ -34,19 +35,21 @@ tcdata <- tcdata %>%
       GENDER == "Female" & HB_gdL < 12 | GENDER == "Male" & HB_gdL < 13 ~ 1,
       TRUE ~ 0
     )),
-    ef_tot_cat = factor(case_when(
-      ef_tot < 50 ~ 2,
-      ef_tot >= 50 ~ 1
+    ef_tot_cat = factor(
+      case_when(
+        ef_tot < 50 ~ 2,
+        ef_tot >= 50 ~ 1
+      ),
+      levels = 1:2,
+      labels = c("HFpEF", "HFmrEF")
     ),
-    levels = 1:2,
-    labels = c("HFpEF", "HFmrEF")
-    ),
-    EF_cat = factor(case_when(
-      EF < 50 ~ 2,
-      EF >= 50 ~ 1
-    ),
-    levels = 1:2,
-    labels = c("HFpEF", "HFmrEF")
+    EF_cat = factor(
+      case_when(
+        EF < 50 ~ 2,
+        EF >= 50 ~ 1
+      ),
+      levels = 1:2,
+      labels = c("HFpEF", "HFmrEF")
     ),
     ntprobnp = if_else(BNP_TYPE == 2, BNP_VAL, NA_real_),
     bnp = if_else(BNP_TYPE == 1, BNP_VAL, NA_real_),
@@ -57,31 +60,46 @@ tcdata <- tcdata %>%
       CHF_HOSP == 1 | STATUS == 1 ~ 1,
       TRUE ~ 0
     ),
-    prevhfhosp_cat = factor(case_when(
-      prevhfhosp == 0 ~ 0,
-      chfdc_dt3num == 0 ~ 6,
-      chfdc_dt3num <= 30 ~ 5,
-      chfdc_dt3num <= 90 ~ 4,
-      chfdc_dt3num <= 180 ~ 3,
-      chfdc_dt3num <= 365 ~ 2,
-      chfdc_dt3num > 365 ~ 1
-    ),
-    levels = 0:6,
-    labels = c(
-      "No prior HFH",
-      "HFH >365 d",
-      "HFH 181-365 d",
-      "HFH 91-180 d",
-      "HFH 31-90 d",
-      "HFH 1-30 d",
-      "In-hospital"
-    )
+    prevhfhosp_cat = factor(
+      case_when(
+        prevhfhosp == 0 ~ 0,
+        chfdc_dt3num == 0 ~ 6,
+        chfdc_dt3num <= 30 ~ 5,
+        chfdc_dt3num <= 90 ~ 4,
+        chfdc_dt3num <= 180 ~ 3,
+        chfdc_dt3num <= 365 ~ 2,
+        chfdc_dt3num > 365 ~ 1
+      ),
+      levels = 0:6,
+      labels = c(
+        "No prior HHF",
+        "HHF >365 d",
+        "HHF 181-365 d",
+        "HHF 91-180 d",
+        "HHF 31-90 d",
+        "HHF 1-30 d",
+        "In-hospital"
+      )
     ),
     prevhfhosp1yr = case_when(
       CHF_HOSP == 1 & chfdc_dt3num <= 365 | STATUS == 1 ~ 1,
       TRUE ~ 0
     ),
     spironolactone = if_else(drug == 2, 0, 1),
+    prevhfhospspiro = factor(
+      case_when(
+        prevhfhosp == 0 & spironolactone == 0 ~ 0,
+        prevhfhosp == 0 & spironolactone == 1 ~ 1,
+        prevhfhosp == 1 & spironolactone == 0 ~ 2,
+        prevhfhosp == 1 & spironolactone == 1 ~ 3
+      ),
+      levels = 0:3, labels = c(
+        "No previous HHF/S-",
+        "No previous HHF/S+",
+        "Previous HHF/S-",
+        "Previous HHF/S+"
+      )
+    ),
     ECG_AFIB = if_else(ECG_AFIB == -2, NA_real_, ECG_AFIB),
     nyha_class_cat = factor(nyha_class_cat, levels = 1:2, labels = c("I-II", "III-IV")),
     countryfac = factor(country, levels = c(6, 5, 2, 1), labels = c("Argentina", "Brazil", "Canada", "US"))

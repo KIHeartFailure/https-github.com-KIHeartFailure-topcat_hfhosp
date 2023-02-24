@@ -1,5 +1,4 @@
 ```{r kmfunc, cache=cacheon}
-
 kmfunc <- function(data, time, event, eventname, eventrec, hospvar, yposplus = rep(0.03, 2)) {
   levsh <- levels(tcdata %>% pull(!!sym(hospvar)))
   nlevsh <- length(levsh)
@@ -9,11 +8,12 @@ kmfunc <- function(data, time, event, eventname, eventrec, hospvar, yposplus = r
   )
 
   # cox model
-  mod <- summary(coxph(formula(paste0(
-    "Surv(", time, ",", event, "=='Yes') ~ ", hospvar, " + ",
-    paste(modvarscox, collapse = " + ")
-  )),
-  data = tcdataimp
+  mod <- summary(coxph(
+    formula(paste0(
+      "Surv(", time, ",", event, "=='Yes') ~ ", hospvar, " + ",
+      paste(modvarscox, collapse = " + ")
+    )),
+    data = tcdataimp
   ))
 
   hrprint <- paste0(
@@ -63,7 +63,7 @@ kmfunc <- function(data, time, event, eventname, eventrec, hospvar, yposplus = r
 
     ylabs <- bind_cols(
       ypos = ypos,
-      ytext = c("No previous HFH", "Previous HFH")
+      ytext = c("No previous HHF", "Previous HHF")
     ) %>%
       arrange(ypos)
 
@@ -74,8 +74,8 @@ kmfunc <- function(data, time, event, eventname, eventrec, hospvar, yposplus = r
     text(y = 0.85, x = 1.5, hrprint, cex = cexmy, adj = 0.5)
 
     mtext("No. at risk", side = 1, line = 3.5, at = -1.5, adj = 0, cex = cexmy, font = 2)
-    mtext("No previous HFH", side = 1, line = 4.5, at = -1.5, adj = 0, cex = cexmy)
-    mtext("Previous HFH", side = 1, line = 5.5, at = -1.5, adj = 0, cex = cexmy)
+    mtext("No previous HHF", side = 1, line = 4.5, at = -1.5, adj = 0, cex = cexmy)
+    mtext("Previous HHF", side = 1, line = 5.5, at = -1.5, adj = 0, cex = cexmy)
 
     nrisk <- summary(fits, seq(0, 5, 1), extend = T)
 
@@ -106,13 +106,14 @@ mcffunc <- function(eventname, event, hospvar, yposplus = rep(0.05, 2)) {
   )
 
   # pwp model
-  mod <- summary(coxph(formula(paste0(
-    "Surv(timestart, timestop, ", event, " == 'Yes') ~ ",
-    hospvar, " + ",
-    paste(modvarscox, collapse = " + "),
-    " + cluster(ID) + strata(eventno)"
-  )),
-  data = tcdataimprec
+  mod <- summary(coxph(
+    formula(paste0(
+      "Surv(timestart, timestop, ", event, " == 'Yes') ~ ",
+      hospvar, " + ",
+      paste(modvarscox, collapse = " + "),
+      " + cluster(ID) + strata(eventno)"
+    )),
+    data = tcdataimprec
   ))
 
   hrprint <- paste0(
@@ -194,7 +195,7 @@ mcffunc <- function(eventname, event, hospvar, yposplus = rep(0.05, 2)) {
 
     ylabs <- bind_cols(
       ypos = ypos,
-      ytext = c("No previous HFH", "Previous HFH")
+      ytext = c("No previous HHF", "Previous HHF")
     ) %>%
       arrange(ypos)
 
@@ -205,8 +206,8 @@ mcffunc <- function(eventname, event, hospvar, yposplus = rep(0.05, 2)) {
     text(y = 2 * 0.85, x = 1.5, hrprint, cex = cexmy, adj = 0.5)
 
     mtext("No. at risk", side = 1, line = 3.5, at = -1.5, adj = 0, cex = cexmy, font = 2)
-    mtext("No previous HFH", side = 1, line = 4.5, at = -1.5, adj = 0, cex = cexmy)
-    mtext("Previous HFH", side = 1, line = 5.5, at = -1.5, adj = 0, cex = cexmy)
+    mtext("No previous HHF", side = 1, line = 4.5, at = -1.5, adj = 0, cex = cexmy)
+    mtext("Previous HHF", side = 1, line = 5.5, at = -1.5, adj = 0, cex = cexmy)
 
     nrisk <- summary(fitsn, seq(0, 5, 1), extend = T)
 
@@ -225,15 +226,15 @@ mcffunc <- function(eventname, event, hospvar, yposplus = rep(0.05, 2)) {
 }
 ```
 
-```{r cvdrephfh7, fig.cap="MCF Previous HFH groups - CVD/total HFH", cache=cacheon, dependson="mcffunc", fig.width=8, fig.height=7}
+```{r cvdrephfh7, fig.cap="MCF Previous HHF groups - CVD/total HHF", cache=cacheon, dependson="mcffunc", fig.width=8, fig.height=7}
 mcffunc(
-  eventname = "CVD/total HFH",
+  eventname = "CVD/total HHF",
   event = "out_cvdhfh",
   hospvar = "prevhfhosp_cat"
 )
 ```
 
-```{r cvd7, fig.cap="CIC Previous HFH groups - CVD", cache=cacheon, dependson="kmfunc", fig.width=8, fig.height=7}
+```{r cvd7, fig.cap="CIC Previous HHF groups - CVD", cache=cacheon, dependson="kmfunc", fig.width=8, fig.height=7}
 kmfunc(
   time = "outtime_cvd",
   event = "out_cvd",
@@ -242,41 +243,41 @@ kmfunc(
 )
 ```
 
-```{r rephfh7, fig.cap="MCF Previous HFH groups - Total HFH", cache=cacheon, dependson="mcffunc", fig.width=8, fig.height=7}
+```{r rephfh7, fig.cap="MCF Previous HHF groups - Total HHF", cache=cacheon, dependson="mcffunc", fig.width=8, fig.height=7}
 mcffunc(
-  eventname = "total HFH",
+  eventname = "total HHF",
   event = "out_hfh",
   hospvar = "prevhfhosp_cat"
 )
 ```
 
-```{r cvdhfh17, fig.cap="CIC Previous HFH groups - CVD/first HFH", cache=cacheon, dependson="kmfunc", fig.width=8, fig.height=7}
+```{r cvdhfh17, fig.cap="CIC Previous HHF groups - CVD/first HHF", cache=cacheon, dependson="kmfunc", fig.width=8, fig.height=7}
 kmfunc(
   time = "outtime_hfh",
   event = "out_cvdhfh",
-  eventname = "CVD/first HFH",
+  eventname = "CVD/first HHF",
   hospvar = "prevhfhosp_cat"
 )
 ```
   
-```{r hfh17, fig.cap="CIC Previous HFH groups - First HFH", cache=cacheon, dependson="kmfunc", fig.width=8, fig.height=7}
+```{r hfh17, fig.cap="CIC Previous HHF groups - First HHF", cache=cacheon, dependson="kmfunc", fig.width=8, fig.height=7}
 kmfunc(
   time = "outtime_hfh",
   event = "out_hfh",
-  eventname = "First HFH",
+  eventname = "First HHF",
   hospvar = "prevhfhosp_cat"
 )
 ```
 
-```{r cvdrephfh, fig.cap="MCF Previous HFH - CVD/total HFH", cache=cacheon, dependson="mcffunc", fig.width=8, fig.height=7}
+```{r cvdrephfh, fig.cap="MCF Previous HHF - CVD/total HHF", cache=cacheon, dependson="mcffunc", fig.width=8, fig.height=7}
 mcffunc(
-  eventname = "CVD/total HFH",
+  eventname = "CVD/total HHF",
   event = "out_cvdhfh",
   hospvar = "prevhfhosp"
 )
 ```
 
-```{r cvd, fig.cap="CIC Previous HFH - CVD", cache=cacheon, dependson="kmfunc", fig.width=8, fig.height=7}
+```{r cvd, fig.cap="CIC Previous HHF - CVD", cache=cacheon, dependson="kmfunc", fig.width=8, fig.height=7}
 kmfunc(
   time = "outtime_cvd",
   event = "out_cvd",
@@ -285,28 +286,148 @@ kmfunc(
 )
 ```
 
-```{r rephfh, fig.cap="MCF Previous HFH - Total HFH", cache=cacheon, dependson="mcffunc", fig.width=8, fig.height=7}
+```{r rephfh, fig.cap="MCF Previous HHF - Total HHF", cache=cacheon, dependson="mcffunc", fig.width=8, fig.height=7}
 mcffunc(
-  eventname = "total HFH",
+  eventname = "total HHF",
   event = "out_hfh",
   hospvar = "prevhfhosp"
 )
 ```
 
-```{r cvdhfh1, fig.cap="CIC Previous HFH - CVD/first HFH", cache=cacheon, dependson="kmfunc", fig.width=8, fig.height=7}
+```{r cvdhfh1, fig.cap="CIC Previous HHF - CVD/first HHF", cache=cacheon, dependson="kmfunc", fig.width=8, fig.height=7}
 kmfunc(
   time = "outtime_hfh",
   event = "out_cvdhfh",
-  eventname = "CVD/first HFH",
+  eventname = "CVD/first HHF",
   hospvar = "prevhfhosp"
 )
 ```
   
-```{r hfh1, fig.cap="CIC Previous HFH - First HFH", cache=cacheon, dependson="kmfunc", fig.width=8, fig.height=7}
+```{r hfh1, fig.cap="CIC Previous HHF - First HHF", cache=cacheon, dependson="kmfunc", fig.width=8, fig.height=7}
 kmfunc(
   time = "outtime_hfh",
   event = "out_hfh",
-  eventname = "First HFH",
+  eventname = "First HHF",
   hospvar = "prevhfhosp"
 )
+```
+
+```{r cvdrephfhspiro, cache=cacheon, fig.cap="MCF Previous HHF/spirolactone - CVD/total HHF", fig.width=8, fig.height=7}
+eventname <- "CVD/total HHF"
+event <- "out_cvdhfh"
+hospvar <- "prevhfhospspiro"
+levsh <- levels(tcdata %>% pull(!!sym(hospvar)))
+nlevsh <- length(levsh)
+modvarscoxtmp <- modvarscox[modvarscox != "spironolactone"]
+
+# needed for n at risk
+fitsn <- survfit(formula(paste0("Surv(outtime_cvd, out_cvd =='Yes') ~ ", hospvar)),
+  data = tcdata
+)
+
+# pwp model
+modyes <- summary(coxph(
+  formula(paste0(
+    "Surv(timestart, timestop, ", event, " == 'Yes') ~ spironolactone * relevel(prevhfhosp, ref = 'Yes') + ",
+    paste(modvarscoxtmp, collapse = " + "),
+    " + cluster(ID) + strata(eventno)"
+  )),
+  data = tcdataimprec
+))
+modno <- summary(coxph(
+  formula(paste0(
+    "Surv(timestart, timestop, ", event, " == 'Yes') ~ spironolactone * relevel(prevhfhosp, ref = 'No') + ",
+    paste(modvarscoxtmp, collapse = " + "),
+    " + cluster(ID) + strata(eventno)"
+  )),
+  data = tcdataimprec
+))
+
+hrprint <- c(
+  "ref",
+  paste0(
+    fn(modno$conf.int[1, 1], dig = 2),
+    " (", fn(modno$conf.int[1, 3], dig = 2),
+    "-", fn(modno$conf.int[1, 4], dig = 2), "), ",
+    fn(modno$coef[1, "Pr(>|z|)"], dig = 3, p = TRUE)
+  ),
+  "ref",
+  paste0(
+    fn(modyes$conf.int[1, 1], dig = 2),
+    " (", fn(modyes$conf.int[1, 3], dig = 2),
+    "-", fn(modyes$conf.int[1, 4], dig = 2), "), ",
+    fn(modyes$coef[1, "Pr(>|z|)"], dig = 3, p = TRUE)
+  )
+)
+
+pint <- fn(last(modyes$coefficients[, "Pr(>|z|)"]), dig = 3, p = TRUE)
+
+tmptcdataimprec <- tcdataimprec %>%
+  filter(!!sym(event) == "Yes", eventno == lastevent) %>%
+  mutate(!!sym(event) := "No",
+    timestart = timestop,
+    timestop = timestop
+  )
+
+tmptcdataimprec <- bind_rows(tcdataimprec, tmptcdataimprec) %>%
+  arrange(ID, timestart, timestop)
+
+fits <- mcf(formula(paste0("Recur(timestop, ID, ", event, " == 'Yes') ~ ", hospvar)), data = tmptcdataimprec)
+
+# c(bottom, left, top, right)
+cexmy <- 1.2
+par(mar = c(8.5, 10.5, 1, 1) + 0.1)
+cols <- global_cols[c(8, 3, 8, 3)]
+lwdmy <- 4
+ltymy <- c(1, 1, 2, 2)
+
+plot(fits@MCF$time[fits@MCF[hospvar] == levsh[1]],
+  fits@MCF$MCF[fits@MCF[hospvar] == levsh[1]],
+  type = "l",
+  ylab = paste0("Mean cumulative ", eventname, " (per 100 patients)"),
+  col = cols[1],
+  xlim = c(0, 5),
+  ylim = c(0, 2),
+  xlab = "Follow-up (years)",
+  cex.lab = cexmy,
+  axes = F,
+  lwd = lwdmy,
+  lty = ltymy[1],
+  xaxs = "i", yaxs = "i"
+)
+
+for (i in 2:nlevsh) {
+  lines(fits@MCF$time[fits@MCF[hospvar] == levsh[i]],
+    fits@MCF$MCF[fits@MCF[hospvar] == levsh[i]],
+    col = cols[i],
+    lwd = lwdmy,
+    lty = ltymy[i]
+  )
+}
+
+axis(2, seq(0, 2, 0.5), seq(0, 200, 50), las = 2, cex.axis = cexmy)
+axis(1, at = seq(0, 5, 1), seq(0, 5, 1), cex.axis = cexmy)
+
+legend(
+  x = 0.02, y = 0.95 * 2,
+  legend = levsh,
+  lty = ltymy, col = cols, lwd = lwdmy, bty = "n", cex = cexmy
+)
+text(x = 2.38, 0.96 * 2, "Adjusted HR (95% CI), p", cex = cexmy, pos = 4)
+legend(x = 2.15, y = 0.95 * 2, hrprint, bty = "n", cex = cexmy)
+
+text(y = 2 * 0.7, x = 2.38, paste0("P interaction: ", pint), cex = cexmy, pos = 4)
+
+mtext("No. at risk", side = 1, line = 3.5, at = -1.85, adj = 0, cex = cexmy, font = 2)
+mtext(levsh[1], side = 1, line = 4.5, at = -1.85, adj = 0, cex = cexmy)
+mtext(levsh[2], side = 1, line = 5.5, at = -1.85, adj = 0, cex = cexmy)
+mtext(levsh[3], side = 1, line = 6.5, at = -1.85, adj = 0, cex = cexmy)
+mtext(levsh[4], side = 1, line = 7.5, at = -1.85, adj = 0, cex = cexmy)
+
+nrisk <- summary(fitsn, seq(0, 5, 1), extend = T)
+
+axis(1, at = seq(0, 5, 1), labels = nrisk$n.risk[nrisk$strata == levels(nrisk$strata)[1]], line = 3.5, tick = FALSE, cex.axis = cexmy)
+axis(1, at = seq(0, 5, 1), labels = nrisk$n.risk[nrisk$strata == levels(nrisk$strata)[2]], line = 4.5, tick = FALSE, cex.axis = cexmy)
+axis(1, at = seq(0, 5, 1), labels = nrisk$n.risk[nrisk$strata == levels(nrisk$strata)[3]], line = 5.5, tick = FALSE, cex.axis = cexmy)
+axis(1, at = seq(0, 5, 1), labels = nrisk$n.risk[nrisk$strata == levels(nrisk$strata)[4]], line = 6.5, tick = FALSE, cex.axis = cexmy)
 ```

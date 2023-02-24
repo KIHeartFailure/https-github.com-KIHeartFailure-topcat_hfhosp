@@ -1,7 +1,7 @@
 
 ```{r splinefunc, cache=cacheon}
 
-mytermplot <- function(mod, xlab = "Time since previous HFH (months)", ylab = "Hazard Ratio (95% CI)",
+mytermplot <- function(mod, xlab = "Time since previous HHF (months)", ylab = "Adjusted HR (95% CI)",
                        yaxismy = c(0.7, 0.8, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5)) {
   cexmy <- 1.2
 
@@ -65,7 +65,7 @@ splinefunc <- function(time = NULL, event) {
 }
 ```
 
-```{r scvdrephfh, fig.cap="Spline CVD/total HFH", cache=cacheon, dependson="splinefunc", fig.width=8, fig.height=7}
+```{r scvdrephfh, fig.cap="Spline CVD/total HHF", cache=cacheon, dependson="splinefunc", fig.width=8, fig.height=7}
 splinefunc(
   event = "out_cvdhfh"
 )
@@ -78,20 +78,20 @@ splinefunc(
 )
 ```
 
-```{r srephfh, fig.cap="Spline total HFH", cache=cacheon, dependson="splinefunc", fig.width=8, fig.height=7}
+```{r srephfh, fig.cap="Spline total HHF", cache=cacheon, dependson="splinefunc", fig.width=8, fig.height=7}
 splinefunc(
   event = "out_hfh"
 )
 ```
 
-```{r scvdhfh1, fig.cap="Spline CVD/first HFH", cache=cacheon, dependson="splinefunc", fig.width=8, fig.height=7}
+```{r scvdhfh1, fig.cap="Spline CVD/first HHF", cache=cacheon, dependson="splinefunc", fig.width=8, fig.height=7}
 splinefunc(
   time = "outtime_hfh",
   event = "out_cvdhfh"
 )
 ```
   
-```{r shfh1, fig.cap="Spline first HFH", cache=cacheon, dependson="splinefunc", fig.width=8, fig.height=7}
+```{r shfh1, fig.cap="Spline first HHF", cache=cacheon, dependson="splinefunc", fig.width=8, fig.height=7}
 splinefunc(
   time = "outtime_hfh",
   event = "out_hfh"

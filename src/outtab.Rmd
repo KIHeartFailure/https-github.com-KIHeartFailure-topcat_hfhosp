@@ -205,7 +205,7 @@ survfunc2 <- function(hospvar2, hospvarcr2) {
   s1 <- survfunc(
     time = "outtime_cvd",
     event = "out_cvdhfhno",
-    eventname = "CVD/total HFH",
+    eventname = "CVD/total HHF",
     hospvar = hospvar2,
     rep = TRUE,
     repevent = "out_cvdhfh"
@@ -213,7 +213,7 @@ survfunc2 <- function(hospvar2, hospvarcr2) {
   s12 <- survfunc(
     time = "outtime_cvd",
     event = "out_cvdsenshfhno",
-    eventname = "CVD/total HFH (unknown death as Non-CVD)",
+    eventname = "CVD/total HHF (unknown death as Non-CVD)",
     hospvar = hospvar2,
     rep = TRUE,
     repevent = "out_cvdsenshfh"
@@ -229,7 +229,7 @@ survfunc2 <- function(hospvar2, hospvarcr2) {
   s3 <- survfunc(
     time = "outtime_cvd",
     event = "out_hfhno",
-    eventname = "Total HFH",
+    eventname = "Total HHF",
     hospvar = hospvar2,
     rep = TRUE,
     repevent = "out_hfh"
@@ -238,7 +238,7 @@ survfunc2 <- function(hospvar2, hospvarcr2) {
     time = "outtime_hfh",
     event = "out_cvdhfh",
     eventcr = "out_cvdhfh_cr",
-    eventname = "CVD/first HFH",
+    eventname = "CVD/first HHF",
     hospvar = hospvar2,
     hospvarcr = hospvarcr2
   )
@@ -246,7 +246,7 @@ survfunc2 <- function(hospvar2, hospvarcr2) {
     time = "outtime_hfh",
     event = "out_hfh",
     eventcr = "out_hfh_cr",
-    eventname = "First HFH",
+    eventname = "First HHF",
     hospvar = hospvar2,
     hospvarcr = hospvarcr2
   )
@@ -265,19 +265,19 @@ out <- survfunc2(
   hospvar2 = "prevhfhosp_cat",
   hospvarcr2 = c(
     "prevhfhosp_cat_cr_Inmhospital",
-    "prevhfhosp_cat_cr_HFH1m30d",
-    "prevhfhosp_cat_cr_HFH31m90d",
-    "prevhfhosp_cat_cr_HFH91m180d",
-    "prevhfhosp_cat_cr_HFH181m365d",
-    "prevhfhosp_cat_cr_HFHover365d"
+    "prevhfhosp_cat_cr_HHF1m30d",
+    "prevhfhosp_cat_cr_HHF31m90d",
+    "prevhfhosp_cat_cr_HHF91m180d",
+    "prevhfhosp_cat_cr_HHF181m365d",
+    "prevhfhosp_cat_cr_HHFover365d"
   )
 )
 
-write.xlsx(out, paste0("./output/tabs/Association between previous HFH groups and outcomes_", Sys.Date(), ".xlsx"), rowNames = FALSE, overwrite = TRUE)
+write.xlsx(out, paste0("./output/tabs/Association between previous HHF groups and outcomes_", Sys.Date(), ".xlsx"), rowNames = FALSE, overwrite = TRUE)
 
 default_kable(out,
   # font_size = 6,
-  caption = "Association between previous HFH groups and outcomes"
+  caption = "Association between previous HHF groups and outcomes"
 ) %>%
   landscape()
 ```
@@ -286,10 +286,10 @@ default_kable(out,
 
 out <- survfunc2(hospvar2 = "prevhfhosp", hospvarcr2 = "prevhfhosp_cr_Yes")
 
-write.xlsx(out, paste0("./output/tabs/Association between previous HFH and outcomes_", Sys.Date(), ".xlsx"), rowNames = FALSE, overwrite = TRUE)
+write.xlsx(out, paste0("./output/tabs/Association between previous HHF and outcomes_", Sys.Date(), ".xlsx"), rowNames = FALSE, overwrite = TRUE)
 
 default_kable(out,
   # font_size = 3#,
-  caption = sanitize_text("Association between previous HFH and outcomes")
+  caption = sanitize_text("Association between previous HHF and outcomes")
 )
 ```

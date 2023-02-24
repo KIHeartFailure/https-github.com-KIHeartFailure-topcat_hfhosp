@@ -38,13 +38,13 @@ for (i in seq_along(levs)) {
 forestdata <- out
 forestdata <- forestdata %>%
   mutate(
-    Subgroup = str_replace_all(Subgroup, "HFH", ""),
+    Subgroup = str_replace_all(Subgroup, "HHF ", ""),
     Subgroup = str_replace_all(Subgroup, "d", "days"),
     order = n():1
   )
 ```
 
-```{r outforestsubplotspiro, cache=cacheon, dependson="outforestsubspiro", fig.cap="Association between Spironolactone and CVD/total HFH in previous HFH subgroups", fig.width=6, fig.height=8}
+```{r outforestsubplotspiro, cache=cacheon, dependson="outforestsubspiro", fig.cap="Association between Spironolactone and CVD/total HHF in previous HHF subgroups", fig.width=6, fig.height=8}
 
 cextext <- 1
 
@@ -52,7 +52,7 @@ minmy <- 0.4
 maxmy <- 2
 
 # c(bottom, left, top, right)
-par(mar = c(4, 16, 1, 2) + 0.2)
+par(mar = c(4, 16.5, 1, 2) + 0.2)
 
 
 plot(forestdata$coef, forestdata$order,
@@ -116,28 +116,28 @@ axis(1,
 
 axis(2,
   at = nrow(forestdata) + 1,
-  labels = "Previous HFH",
-  cex.axis = cextext, tick = FALSE, las = 2, line = 15, hadj = 0, font = 2
+  labels = "Previous HHF",
+  cex.axis = cextext, tick = FALSE, las = 2, line = 15.5, hadj = 0, font = 2
 )
 axis(2,
   at = forestdata$order,
   labels = forestdata$Subgroup,
-  cex.axis = cextext, tick = FALSE, las = 2, line = 15, hadj = 0
+  cex.axis = cextext, tick = FALSE, las = 2, line = 15.5, hadj = 0
 )
 
 axis(2,
   at = nrow(forestdata) + 1,
-  labels = "HR (95% CI), p-value",
-  cex.axis = cextext, tick = FALSE, las = 2, line = 4.5, hadj = 0.5, font = 2
+  labels = "Crude HR (95% CI), p-value",
+  cex.axis = cextext, tick = FALSE, las = 2, line = 4, hadj = 0.5, font = 2
 )
 axis(2,
   at = forestdata$order,
   labels = forestdata$`HR (95% CI)`,
-  cex.axis = cextext, tick = FALSE, las = 2, line = 4.5, hadj = 0.5
+  cex.axis = cextext, tick = FALSE, las = 2, line = 4, hadj = 0.5
 )
 
 axis(1,
   at = (log(maxmy) + log(minmy)) / 2, cex.axis = cextext,
-  labels = "HR (95% CI)", line = 1, tick = FALSE
+  labels = "Crude HR (95% CI)", line = 1, tick = FALSE
 )
 ```

@@ -125,10 +125,14 @@ forestdata <- rbind(
 )
 
 forestdata <- forestdata %>%
-  mutate(order = n():1)
+  mutate(
+    order = n():1,
+    Subgroup = str_replace_all(Subgroup, ">=", "\u2265"),
+    Subgroup = str_replace_all(Subgroup, "<=", "\u2264")
+  )
 ```
 
-```{r outforestsubplot, cache=cacheon, dependson="outforestsub", fig.cap="Association between previous HFH and CVD/total HFH within subgroups", fig.width=6, fig.height=8}
+```{r outforestsubplot, cache=cacheon, dependson="outforestsub", fig.cap="Association between previous HHF and CVD/total HHF within subgroups", fig.width=6, fig.height=8}
 
 cextext <- 1
 
@@ -136,7 +140,7 @@ minmy <- 0.5
 maxmy <- ceiling(exp(max(forestdata$uci, na.rm = T)) * 10) / 10
 
 # c(bottom, left, top, right)
-par(mar = c(4, 18, 1, 2) + 0.2)
+par(mar = c(4, 19, 1, 2) + 0.2)
 
 
 plot(forestdata$coef, forestdata$order,
@@ -158,24 +162,30 @@ plot(forestdata$coef, forestdata$order,
   xaxs = "i"
 )
 
-segments(x0 = forestdata$lci, 
-         x1 = forestdata$uci, 
-         y0 = forestdata$order, 
-         col = global_cols[3], 
-         lwd = 2)
+segments(
+  x0 = forestdata$lci,
+  x1 = forestdata$uci,
+  y0 = forestdata$order,
+  col = global_cols[3],
+  lwd = 2
+)
 
 # lower
-segments(x0 = forestdata$lci, 
-         y0 = forestdata$order - 0.25, 
-         y1 = forestdata$order + 0.25, 
-         col = global_cols[3], 
-         lwd = 2)
+segments(
+  x0 = forestdata$lci,
+  y0 = forestdata$order - 0.25,
+  y1 = forestdata$order + 0.25,
+  col = global_cols[3],
+  lwd = 2
+)
 # upper
-segments(x0 = forestdata$uci, 
-         y0 = forestdata$order - 0.25, 
-         y1 = forestdata$order + 0.25, 
-         col = global_cols[3], 
-         lwd = 2)
+segments(
+  x0 = forestdata$uci,
+  y0 = forestdata$order - 0.25,
+  y1 = forestdata$order + 0.25,
+  col = global_cols[3],
+  lwd = 2
+)
 
 matplot(c(log(1), log(1)), c(-1, max(forestdata$order)), type = "l", lwd = 1, lty = 3, add = TRUE, col = 1)
 
@@ -195,23 +205,23 @@ axis(1,
 axis(2,
   at = nrow(forestdata) + 1,
   labels = "Subgroup",
-  cex.axis = cextext, tick = FALSE, las = 2, line = 17, hadj = 0, font = 2
+  cex.axis = cextext, tick = FALSE, las = 2, line = 18, hadj = 0, font = 2
 )
 axis(2,
   at = forestdata$order,
   labels = forestdata$Subgroup,
-  cex.axis = cextext, tick = FALSE, las = 2, line = 17, hadj = 0
+  cex.axis = cextext, tick = FALSE, las = 2, line = 18, hadj = 0
 )
 
 axis(2,
   at = nrow(forestdata) + 1,
-  labels = "HR (95% CI)",
-  cex.axis = cextext, tick = FALSE, las = 2, line = 7, hadj = 0.5, font = 2
+  labels = "Adjusted HR (95% CI)",
+  cex.axis = cextext, tick = FALSE, las = 2, line = 8, hadj = 0.5, font = 2
 )
 axis(2,
   at = forestdata$order,
   labels = forestdata$`HR (95% CI)`,
-  cex.axis = cextext, tick = FALSE, las = 2, line = 7, hadj = 0.5
+  cex.axis = cextext, tick = FALSE, las = 2, line = 8, hadj = 0.5
 )
 
 axis(2,
@@ -227,6 +237,6 @@ axis(2,
 
 axis(1,
   at = (log(maxmy) + log(minmy)) / 2, cex.axis = cextext,
-  labels = "HR (95% CI)", line = 1, tick = FALSE
+  labels = "Adjusted HR (95% CI)", line = 1, tick = FALSE
 )
 ```

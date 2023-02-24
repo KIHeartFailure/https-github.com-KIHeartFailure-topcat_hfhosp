@@ -4,7 +4,8 @@ author: 'Statistician: Lina Benson'
   
 date: "`r Sys.Date()`"
 output:
-  pdf_document:
+  bookdown::pdf_document2: 
+    dev: cairo_pdf
     fig_caption: yes
     fig_height: 7
     fig_width: 7
@@ -60,7 +61,7 @@ default_kable(flow, caption = "Flowchart", scale_down = F)
 
 ## Fixes
 
-Values < 0 in the continuous variables presented are replaced by missing. Time from previous HFH that is after randomization is set to 0. 
+Values < 0 in the continuous variables presented are replaced by missing. Time from previous HHF that is after randomization is set to 0. 
 
 NT-proBNP and BNP are categorized according to tertiles and the tertiles are combined into one variable. 
 
@@ -82,12 +83,12 @@ A sensitivity analysis was also performed without adjustment for NT-proBNP/BNP i
 Unknown causes of death are assumed to be CV. A sensitivity analysis was 
 performed were unknown was assumed to be non-CV.
 
-## Previous HFH
+## Previous HHF
 
 All analyses are performed for:
 
-- No previous HFH, in-hospital, HFH 1-30d, HFH 31-90d, HFH 91-180d, HFH 181-365d, HFH > 365d
-- Previous HFH vs no previous HFH (at any time point)
+- No previous HHF, in-hospital, HHF 1-30d, HHF 31-90d, HHF 91-180d, HHF 181-365d, HHF > 365d
+- Previous HHF vs no previous HHF (at any time point)
 
 \clearpage
 
@@ -99,7 +100,7 @@ All analyses are performed for:
 
 \clearpage
 
-## Associations between previous HFH and outcomes
+## Associations between previous HHF and outcomes
 
 The following outcomes are considered: 
 
@@ -110,10 +111,10 @@ The following outcomes are considered:
 - First HF hospitalization
 
 Time to first events were presented with cumulative incidence curves (CIC) and 
-the mean cumulative function (MCF) was used to depict the recurrent events by previous HFH. 
+the mean cumulative function (MCF) was used to depict the recurrent events by previous HHF. 
 
 Cox proportional hazards regressions were 
-used to model the time to first event, partly crude including only previous HFH in the model 
+used to model the time to first event, partly crude including only previous HHF in the model 
 and partly adjusted for variables indicated in 
 Table \ref{tab:tab1cat}. The variables were selected based on clinical relevance. 
 The continuous variables were included using natural cubic splines with 4 degrees of freedom. 
@@ -150,15 +151,15 @@ The median (min-max) follow-up is
 
 ```
 
-### Visualization of association between time from previous HFH and outcomes
+### Visualization of association between time from previous HHF and outcomes
 
-Previous HFH on a continuous scale was visually presented using natural cubic 
+Previous HHF on a continuous scale was visually presented using natural cubic 
 splines with 4 degrees of freedom using the
 Cox proportional hazards regressions adjusted for the same variables as above for time to first event and
 the Prentice-Williams-Peterson total-time model, adjusted as above, for recurrent events. 
-The reference (HR = 1) in the plots is the median time from previous HFH.  
+The reference (HR = 1) in the plots is the median time from previous HHF.  
 
-The model only included patients with a previous HFH. 
+The model only included patients with a previous HHF. 
 
 ```{r, child = "./src/splines.Rmd"}
 
@@ -175,7 +176,7 @@ Since age, map and bmi showed signs of non-linear associations with the outcome 
 
 ### Subgroups
 
-Performed using an interaction term between previous HFH and the selected 
+Performed using an interaction term between previous HHF and the selected 
 respective variables for the outcome CV mortality + total HF hospitalization (primary endpoint). 
 
 ```{r, child = "./src/outforestsub.Rmd"}
@@ -185,14 +186,14 @@ respective variables for the outcome CV mortality + total HF hospitalization (pr
 \clearpage
 \newpage
 
-### Association between Spironolactone and outcomes in different previous HFH subgroups
+### Association between Spironolactone and outcomes in different previous HHF subgroups
 
 ```{r, child = "./src/outforestsubspiro.Rmd"}
 
 ```
 
-Performed using an interaction term between Spironolactone and previous HFH groups for the outcome CV mortality + total HF hospitalization (primary endpoint). Adjustment is not performed. 
-The p-value for the interaction between Spironolactone and previous HFH is `r forestdata[1, 6]`. 
+Performed using an interaction term between Spironolactone and previous HHF groups for the outcome CV mortality + total HF hospitalization (primary endpoint). Adjustment is not performed. 
+The p-value for the interaction between Spironolactone and previous HHF is `r forestdata[1, 6]`. 
 
 
 \clearpage

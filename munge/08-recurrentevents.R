@@ -39,7 +39,8 @@ hfhosprec <- hfhosprec %>%
   ungroup()
 
 tcdataimprec <- left_join(
-  tcdataimp %>% select(ID, prevhfhosp, prevhfhosp_cat, prevhfhosp1yr, chfdc_dt3num, age_entry_cat, CKD, !!!syms(modvars)),
+  tcdataimp %>% select(ID, prevhfhosp, prevhfhosp_cat, prevhfhosp1yr, prevhfhospspiro, chfdc_dt3num, age_entry_cat, CKD, !!!syms(modvars)),
   hfhosprec,
-  by = "ID"
+  by = "ID", 
+  multiple = "all"
 )
