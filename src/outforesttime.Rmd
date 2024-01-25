@@ -1,0 +1,189 @@
+```{r outforesttime, cache=cacheon}
+forestplot <- function(time, event, rep = FALSE, minmy, maxmy) {
+  nlevs <- nlevels(tcdata$prevhfhosp_cat)
+  levs <- levels(tcdata$prevhfhosp_cat)
+  if (rep) {
+    mod <- coxph(
+      formula(paste0(
+        "Surv(timestart, timestop, ", event, " == 'Yes') ~ relevel(prevhfhosp_cat, ref = 'In-hospital') + ", paste(modvarscox, collapse = " + "), " + cluster(ID) + strata(eventno)"
+      )),
+      data = tcdataimprec
+    )
+    smod <- summary(mod)
+  }
+  if (!rep) {
+    smod <- summary(coxph(
+      formula(paste0(
+        "Surv(", time, ",", event, "=='Yes') ~ relevel(prevhfhosp_cat, ref = 'In-hospital') + ",
+        paste(modvarscox, collapse = " + ")
+      )),
+      data = tcdataimp
+    ))
+  }
+  out <- tibble(
+    hr = smod$conf.int[1:(nlevs - 1), "exp(coef)"],
+    lci = smod$conf.int[1:(nlevs - 1), "lower .95"],
+    uci = smod$conf.int[1:(nlevs - 1), "upper .95"],
+    p = fn(smod$coefficients[1:(nlevs - 1), "Pr(>|z|)"], p = T, dig = 3)
+  ) %>%
+    mutate(
+      hrci =
+        paste0(
+          fn(hr, dig = 2),
+          " (", fn(lci, dig = 2),
+          "-", fn(uci, dig = 2), "), ",
+          p
+        )
+    ) %>%
+    add_row(
+      hr = 1,
+      hrci = "reference"
+    ) %>%
+    add_column(hfh = levs)
+
+  forestdata <- out %>%
+    mutate(
+      hfh = str_replace_all(hfh, "HHF ", ""),
+      hfh = str_replace_all(hfh, "d", "days"),
+      order = n():1
+    )
+
+
+  cextext <- 1
+
+  # c(bottom, left, top, right)
+  par(mar = c(4, 17, 1, 2) + 0.2)
+
+
+  plot(log(forestdata$hr), forestdata$order,
+    cex = 2,
+    xlim = c(
+      log(minmy),
+      log(maxmy)
+    ),
+    xlab = "",
+    cex.lab = cextext,
+    ylim = c(1, max(forestdata$order) + 1),
+    axes = FALSE,
+    ylab = NA,
+    main = NA,
+    type = "p",
+    pch = 22,
+    bg = global_cols[3],
+    col = global_cols[3],
+    xaxs = "i"
+  )
+
+  segments(
+    x0 = log(forestdata$lci),
+    x1 = log(forestdata$uci),
+    y0 = forestdata$order,
+    col = global_cols[3],
+    lwd = 2
+  )
+
+  # lower
+  segments(
+    x0 = log(forestdata$lci),
+    y0 = forestdata$order - 0.1,
+    y1 = forestdata$order + 0.1,
+    col = global_cols[3],
+    lwd = 2
+  )
+  # upper
+  segments(
+    x0 = log(forestdata$uci),
+    y0 = forestdata$order - 0.1,
+    y1 = forestdata$order + 0.1,
+    col = global_cols[3],
+    lwd = 2
+  )
+
+  matplot(c(log(1), log(1)), c(-1, nrow(forestdata)), type = "l", lwd = 1, lty = 3, add = TRUE, col = 1)
+
+  axismy <- seq(minmy, maxmy, 0.1)
+  axismy2 <- axismy
+  axismy2[!axismy %in% c(minmy, maxmy)] <- NA
+
+  axis(1,
+    cex.axis = cextext, at = log(axismy),
+    labels = axismy2
+  )
+  axis(1,
+    cex.axis = cextext, at = log(1),
+    labels = 1
+  )
+
+  axis(2,
+    at = nrow(forestdata) + 1,
+    labels = "Previous HHF",
+    cex.axis = cextext, tick = FALSE, las = 2, line = 16, hadj = 0, font = 2
+  )
+  axis(2,
+    at = forestdata$order,
+    labels = forestdata$hfh,
+    cex.axis = cextext, tick = FALSE, las = 2, line = 16, hadj = 0
+  )
+
+  axis(2,
+    at = nrow(forestdata) + 1,
+    labels = "Adjusted HR (95% CI), p-value",
+    cex.axis = cextext, tick = FALSE, las = 2, line = 4, hadj = 0.5, font = 2
+  )
+  axis(2,
+    at = forestdata$order,
+    labels = forestdata$hrci,
+    cex.axis = cextext, tick = FALSE, las = 2, line = 4, hadj = 0.5
+  )
+
+  axis(1,
+    at = (log(maxmy) + log(minmy)) / 2, cex.axis = cextext,
+    labels = "Adjusted HR (95% CI)", line = 1, tick = FALSE
+  )
+}
+```
+
+```{r outtimecvdrephfh, cache=cacheon, dependson="outforesttime", fig.cap="Association between CVD/total HHF and previous HHF", fig.width=6, fig.height=8}
+forestplot(
+  event = "out_cvdhfh",
+  rep = TRUE,
+  minmy = 0.6,
+  maxmy = 1.5
+)
+```
+
+```{r outtimecvd, cache=cacheon, dependson="outforesttime", fig.cap="Association between CVD and previous HHF", fig.width=6, fig.height=8}
+forestplot(
+  time = "outtime_cvd",
+  event = "out_cvd",
+  minmy = 0.4,
+  maxmy = 2.0
+)
+```
+
+```{r outtimerephfh, cache=cacheon, dependson="outforesttime", fig.cap="Association between Total HHF and previous HHF", fig.width=6, fig.height=8}
+forestplot(
+  event = "out_hfh",
+  rep = TRUE,
+  minmy = 0.5,
+  maxmy = 1.5
+)
+```
+
+```{r outtimecvdfirsthfh, cache=cacheon, dependson="outforesttime", fig.cap="Association between CVD/first HHF and previous HHF", fig.width=6, fig.height=8}
+forestplot(
+  time = "outtime_hfh",
+  event = "out_cvdhfh",
+  minmy = 0.4,
+  maxmy = 1.5
+)
+```
+
+```{r outtimefirsthfh, cache=cacheon, dependson="outforesttime", fig.cap="Association between first HHF and previous HHF", fig.width=6, fig.height=8}
+forestplot(
+  time = "outtime_hfh",
+  event = "out_hfh",
+  minmy = 0.4,
+  maxmy = 1.6
+)
+```

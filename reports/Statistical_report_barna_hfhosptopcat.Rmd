@@ -151,6 +151,17 @@ The median (min-max) follow-up is
 
 ```
 
+### Association between time from previous HHF and outcomes
+
+Cox proportional hazards regressions and the Prentice-Williams-Peterson total-time model 
+respectively were used to model time from previous HHF and outcomes and presented in Forestplots. 
+Adjustment was performed for variables indicated in 
+Table \ref{tab:tab1cat}.
+
+```{r, child = "./src/outforesttime.Rmd"}
+
+```
+
 ### Visualization of association between time from previous HHF and outcomes
 
 Previous HHF on a continuous scale was visually presented using natural cubic 
