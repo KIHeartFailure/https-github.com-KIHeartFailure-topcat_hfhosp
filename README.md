@@ -31,4 +31,4 @@ reports/Statistical_report_XX.Rmd
 
 ## Publication
 
-... 
+https://doi.org/10.1016/j.ahj.2024.02.021
